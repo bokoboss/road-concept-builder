@@ -75,9 +75,38 @@ Phase 0 should include:
 
 Only after Phase 0 looks and feels right should the project move to Phase 1 geometry.
 
-## Suggested First Codex Command
+## Current Implementation
+
+Phase 0 is implemented as a static React interface prototype.
+
+Included:
+
+- clean desktop three-panel app shell;
+- static template, component, pavement marking, and preset palette;
+- static SVG divided-road preview;
+- lane lines, median, through arrows, stop line, and warning bars;
+- static selected-marking inspector;
+- static non-blocking validation messages.
+
+Phase 0 intentionally does not include real geometry, interactions, validation logic, persistence, or export behavior.
+
+## Development Commands
+
+Requirements:
+
+- Node.js 20.19+ or 22.12+;
+- npm.
 
 ```text
-/status
-Read AGENTS.md and docs/PRD.md, docs/UI_UX_GUIDELINES.md, docs/PAVEMENT_MARKING_SYSTEM.md, docs/PRODUCT_BOUNDARY_AND_SCOPE.md, docs/GEOMETRY_SCALE_POLICY.md, docs/MVP_ROADMAP.md. Summarize the product intent, UX principles, negative scope, and the recommended first implementation task. Do not write code yet.
+Install: npm install
+Run: npm run dev
+Test: npm test
+Type check: npm run typecheck
+Build: npm run build
 ```
+
+The development server prints its local URL after `npm run dev`.
+
+## Phase Boundary
+
+Do not add Phase 1 geometry or editing behavior until the Phase 0 UI shell has been reviewed.
