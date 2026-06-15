@@ -26,8 +26,8 @@ Only errors should block operations that cannot be completed.
 
 | Rule ID | Severity | Rule |
 |---|---:|---|
-| `GEO-001` | error | Lane width must be greater than zero. |
-| `GEO-002` | error | Road segment must have at least one lane. |
+| `GEO-001` | warning | Phase 1 lane width must be finite and between 2.5 and 5.0 m. |
+| `GEO-002` | warning | Straight road preview must have at least one lane across either direction. |
 | `GEO-003` | warning | Lane drop should include taper. |
 | `GEO-004` | warning | Lane addition should include taper or transition marking. |
 | `GEO-005` | error | U-turn opening requires a median or defined crossing area. |
@@ -46,8 +46,13 @@ Only errors should block operations that cannot be completed.
 | Rule ID | Severity | Rule |
 |---|---:|---|
 | `SEG-001` | warning | Two-way road should include direction-separation marking. |
-| `SEG-002` | warning | Divided road should define median type and width. |
+| `SEG-002` | warning | Painted or raised median width must be greater than zero. Ignored when median type is `none`. |
 | `SEG-003` | info | Shoulder width is treated as a concept parameter unless verified. |
+| `SEG-101` | warning | Phase 1 lane count must be a finite integer within the configured safe maximum: 8 by default, with an absolute geometry cap of 16 per direction. |
+| `SEG-103` | warning | Phase 1 outer shoulder width must be finite and between 0 and 5.0 m. |
+| `SEG-104` | warning | Phase 1 painted or raised median width must be finite and between 0 and 20.0 m. Ignored when median type is `none`. |
+
+The Phase 1 numeric ranges are practical safeguards for stable concept preview rendering. They are not formal Thai-standard limits. Lane-count warning instances use direction-specific issue IDs so eastbound and westbound problems remain distinguishable.
 
 ## Intersection Rules
 

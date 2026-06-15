@@ -1,36 +1,31 @@
-type ValidationItemProps = {
-  severity: 'warning' | 'info'
-  rule: string
-  children: React.ReactNode
-}
+import type { ValidationIssue } from '../validation/validateStraightRoad'
 
-function ValidationItem({ severity, rule, children }: ValidationItemProps) {
+function ValidationItem({ issue }: { issue: ValidationIssue }) {
   return (
-    <div className={`validation-item ${severity}`}>
+    <div className={`validation-item ${issue.severity}`}>
       <span className="validation-symbol" aria-hidden="true">
-        {severity === 'warning' ? '!' : 'i'}
+        {issue.severity === 'warning' ? '!' : 'i'}
       </span>
       <div>
-        <span className="validation-rule">{rule}</span>
-        <p>{children}</p>
+        <span className="validation-rule">{issue.ruleId}</span>
+        <p>{issue.message}</p>
       </div>
     </div>
   )
 }
 
-export function ValidationPanel() {
+export function ValidationPanel({ issues }: { issues: ValidationIssue[] }) {
   return (
     <section className="validation-panel">
       <div className="section-heading">
         <h2>Validation</h2>
-        <span className="issue-count">2 issues</span>
+        <span className="issue-count">
+          {issues.length} {issues.length === 1 ? 'issue' : 'issues'}
+        </span>
       </div>
-      <ValidationItem severity="warning" rule="MRK-006">
-        Transverse warning bars use a project assumption and require verification.
-      </ValidationItem>
-      <ValidationItem severity="info" rule="GEN-001">
-        Concept geometry should not be treated as a construction drawing.
-      </ValidationItem>
+      {issues.map((issue) => (
+        <ValidationItem key={issue.id} issue={issue} />
+      ))}
     </section>
   )
 }

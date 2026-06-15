@@ -41,11 +41,13 @@ Validate the product feel before deep geometry implementation.
 
 Create the first real parametric road diagram.
 
+Phase 1 is limited to the straight-road parametric preview.
+
 ### Scope
 
-- two-way road segment;
-- forward lane count;
-- opposing lane count;
+- two-way and one-way straight road segment preview;
+- eastbound lane count;
+- westbound lane count;
 - lane width;
 - shoulder width;
 - median type: none / painted / raised;
@@ -53,8 +55,8 @@ Create the first real parametric road diagram.
 - lane lines;
 - edge lines;
 - direction arrows;
-- basic lane arrow placement;
-- SVG export;
+- generated through-arrow placement;
+- non-blocking parameter validation;
 - geometry unit tests.
 
 ### Marking Scope
@@ -63,14 +65,17 @@ Create the first real parametric road diagram.
 - lane line;
 - edge line;
 - centerline or direction separator;
-- optional simple transverse warning bars.
 
 ### Exit Criteria
 
 - changing parameters updates the preview immediately;
-- SVG export works;
 - geometry tests pass;
-- the app can create a basic 2-lane, 4-lane, and 6-lane road.
+- the app can create basic one-way, 2-lane, 4-lane, and 6-lane road previews;
+- invalid values produce warnings and safely bounded preview geometry.
+
+The Phase 1 straight-road SVG preview uses a module-specific 500 m rendering extent cap to keep SVG coordinates finite. This is not a Thai standard, road-design limit, or future intersection limit.
+
+SVG export remains disabled and is deferred beyond the current Phase 1 implementation.
 
 ## Phase 2 — U-turn and Median Opening
 

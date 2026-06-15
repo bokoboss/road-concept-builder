@@ -329,8 +329,25 @@ button {
 
 .edge-line,
 .lane-line,
-.median-line {
+.median-line,
+.direction-separation-line {
   fill: none;
+}
+
+.road-surface {
+  fill: #41494d;
+}
+
+.road-shoulder {
+  fill: #9aa4a9;
+}
+
+.painted-median {
+  fill: #d2a83d;
+}
+
+.raised-median {
+  fill: #c8cdd0;
 }
 
 .edge-line {
@@ -349,37 +366,18 @@ button {
   stroke-width: 4;
 }
 
+.direction-separation-line {
+  stroke: #e3bd4e;
+  stroke-width: 5;
+  stroke-dasharray: 28 14;
+}
+
 .road-arrow {
   fill: none;
   stroke: #fff;
   stroke-width: 7;
   stroke-linecap: round;
   stroke-linejoin: round;
-}
-
-.warning-bars rect:not(.selection-outline),
-.stop-line {
-  fill: #fff;
-}
-
-.selection-outline {
-  fill: none;
-  stroke: #4aa0d1;
-  stroke-width: 3;
-  stroke-dasharray: 6 5;
-}
-
-.validation-marker circle {
-  fill: #c98a18;
-  stroke: #fff6df;
-  stroke-width: 4;
-}
-
-.validation-marker path {
-  fill: none;
-  stroke: #fff;
-  stroke-width: 3;
-  stroke-linecap: round;
 }
 
 .road-label rect {
@@ -400,21 +398,34 @@ button {
   letter-spacing: 0.02em;
 }
 
-.sample-marking-label path {
-  fill: none;
-  stroke: #81939c;
-  stroke-width: 1.5;
-}
-
-.sample-marking-label rect {
+.road-dimension-note rect {
   fill: #fff;
   stroke: #d5dee2;
 }
 
-.sample-marking-label text {
+.road-dimension-note text {
   fill: #5c6f78;
   font-size: 9px;
   font-weight: 650;
+}
+
+.empty-road-placeholder rect {
+  fill: rgba(255, 255, 255, 0.78);
+  stroke: #b9c8cf;
+  stroke-width: 2;
+  stroke-dasharray: 8 6;
+}
+
+.empty-road-placeholder text:first-of-type {
+  fill: #435861;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.empty-road-placeholder text:last-of-type {
+  fill: #71838c;
+  font-size: 11px;
+  font-weight: 600;
 }
 
 .north-indicator path {
@@ -504,6 +515,47 @@ button {
   color: #344851;
   font-size: 10px;
   font-weight: 650;
+}
+
+.inspector-field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 38px;
+  gap: 10px;
+  border-bottom: 1px solid #edf1f3;
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.inspector-field input[type="number"],
+.inspector-field select {
+  width: 92px;
+  min-height: 28px;
+  padding: 4px 7px;
+  border: 1px solid #d6e0e4;
+  border-radius: 6px;
+  color: #344851;
+  background: #fff;
+  font: inherit;
+  font-weight: 650;
+}
+
+.inspector-field input:focus,
+.inspector-field select:focus {
+  border-color: #78acd0;
+  outline: 2px solid #dcecf5;
+}
+
+.inspector-field input:disabled {
+  color: #8c9aa1;
+  background: #f1f4f5;
+}
+
+.checkbox-field input {
+  width: 17px;
+  height: 17px;
+  accent-color: var(--accent);
 }
 
 .validation-panel .section-heading {

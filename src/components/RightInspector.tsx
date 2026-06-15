@@ -1,45 +1,148 @@
+import type { ChangeEvent } from 'react'
+import {
+  phase1DrawingSettings,
+  phase1NumericLimits,
+  type MedianType,
+  type StraightRoadParameters,
+} from '../domain/straightRoad'
+import type { ValidationIssue } from '../validation/validateStraightRoad'
 import { ValidationPanel } from './ValidationPanel'
 
-function InspectorRow({ label, value }: { label: string; value: string }) {
+type RightInspectorProps = {
+  parameters: StraightRoadParameters
+  issues: ValidationIssue[]
+  onChange: (parameters: StraightRoadParameters) => void
+}
+
+function NumberField({
+  label,
+  value,
+  step = 1,
+  min,
+  max,
+  disabled = false,
+  onChange,
+}: {
+  label: string
+  value: number
+  step?: number
+  min?: number
+  max?: number
+  disabled?: boolean
+  onChange: (value: number) => void
+}) {
+  const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
+    onChange(event.target.value === '' ? Number.NaN : event.target.valueAsNumber)
+  }
+
   return (
-    <div className="inspector-row">
+    <label className="inspector-field">
       <span>{label}</span>
-      <strong>{value}</strong>
-    </div>
+      <input
+        type="number"
+        value={Number.isNaN(value) ? '' : value}
+        step={step}
+        min={min}
+        max={max}
+        disabled={disabled}
+        onChange={handleChange}
+      />
+    </label>
   )
 }
 
-export function RightInspector() {
+export function RightInspector({ parameters, issues, onChange }: RightInspectorProps) {
+  const update = <Key extends keyof StraightRoadParameters>(
+    key: Key,
+    value: StraightRoadParameters[Key],
+  ) => onChange({ ...parameters, [key]: value })
+
   return (
     <aside className="right-panel">
       <section className="inspector-panel">
         <div className="panel-intro">
-          <span className="eyebrow">Selected marking</span>
-          <h2>Transverse warning bars</h2>
-          <p>Static inspector preview for a road-segment marking.</p>
+          <span className="eyebrow">Selected template</span>
+          <h2>Straight road segment</h2>
+          <p>Adjust concept parameters and review the live SVG preview.</p>
         </div>
 
         <div className="status-card">
-          <span>Source status</span>
-          <strong>PROJECT_ASSUMPTION</strong>
-          <p>Verify dimensions against the applicable project or agency guidance.</p>
+          <span>Drawing context</span>
+          <strong>THAILAND · LEFT-HAND TRAFFIC</strong>
+          <p>Eastbound is upper; westbound is lower. Dimensions are concept assumptions.</p>
         </div>
 
         <div className="inspector-group">
-          <h3>Placement</h3>
-          <InspectorRow label="Target" value="Westbound lanes" />
-          <InspectorRow label="Bar count" value="4" />
-          <InspectorRow label="Spacing" value="Concept" />
-          <InspectorRow label="Rotation" value="Auto" />
+          <h3>Lanes</h3>
+          <NumberField
+            label="Eastbound lanes"
+            value={parameters.eastboundLaneCount}
+            min={0}
+            max={phase1DrawingSettings.maxLaneCountPerDirection}
+            onChange={(value) => update('eastboundLaneCount', value)}
+          />
+          <NumberField
+            label="Westbound lanes"
+            value={parameters.westboundLaneCount}
+            min={0}
+            max={phase1DrawingSettings.maxLaneCountPerDirection}
+            onChange={(value) => update('westboundLaneCount', value)}
+          />
+          <NumberField
+            label="Lane width (m)"
+            value={parameters.laneWidthMeters}
+            step={0.1}
+            min={phase1NumericLimits.laneWidthMeters.min}
+            max={phase1NumericLimits.laneWidthMeters.max}
+            onChange={(value) => update('laneWidthMeters', value)}
+          />
         </div>
 
         <div className="inspector-group">
-          <h3>Appearance</h3>
-          <InspectorRow label="Profile" value="Thailand concept" />
-          <InspectorRow label="Color" value="White" />
+          <h3>Shoulders and median</h3>
+          <NumberField
+            label="Outer shoulder (m)"
+            value={parameters.shoulderWidthMeters}
+            step={0.1}
+            min={phase1NumericLimits.shoulderWidthMeters.min}
+            max={phase1NumericLimits.shoulderWidthMeters.max}
+            onChange={(value) => update('shoulderWidthMeters', value)}
+          />
+          <label className="inspector-field">
+            <span>Median type</span>
+            <select
+              value={parameters.medianType}
+              onChange={(event) => update('medianType', event.target.value as MedianType)}
+            >
+              <option value="none">None</option>
+              <option value="painted">Painted</option>
+              <option value="raised">Raised</option>
+            </select>
+          </label>
+          <NumberField
+            label="Median width (m)"
+            value={parameters.medianWidthMeters}
+            step={0.1}
+            min={phase1NumericLimits.medianWidthMeters.min}
+            max={phase1NumericLimits.medianWidthMeters.max}
+            disabled={parameters.medianType === 'none'}
+            onChange={(value) => update('medianWidthMeters', value)}
+          />
+        </div>
+
+        <div className="inspector-group">
+          <h3>Markings</h3>
+          <label className="inspector-field checkbox-field">
+            <span>Show lane arrows</span>
+            <input
+              type="checkbox"
+              checked={parameters.showLaneArrows}
+              onChange={(event) => update('showLaneArrows', event.target.checked)}
+            />
+          </label>
         </div>
       </section>
-      <ValidationPanel />
+      <ValidationPanel issues={issues} />
     </aside>
   )
 }

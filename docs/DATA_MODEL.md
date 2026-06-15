@@ -36,6 +36,8 @@ type RoadConceptProject = {
 type DrawingSettings = {
   units: 'm';
   pxPerMeter: number;
+  segmentLengthMeters: number;
+  maxLaneCountPerDirection: number;
   trafficSide: 'left' | 'right';
   standardProfile: 'thailand-concept' | 'custom';
   showGrid?: boolean;
@@ -48,11 +50,15 @@ Default:
 ```ts
 {
   units: 'm',
-  pxPerMeter: 20,
+  pxPerMeter: 18,
+  segmentLengthMeters: 42,
+  maxLaneCountPerDirection: 8,
   trafficSide: 'left',
   standardProfile: 'thailand-concept'
 }
 ```
+
+The current Phase 1 implementation uses a minimal fixed drawing-settings object for preview scale, segment length, and bounded lane generation. It sanitizes invalid settings to safe defaults, applies an absolute geometry cap of 16 lanes per direction, and clamps the straight-road SVG preview extent to 500 m. The 500 m value is only a Phase 1 straight-road preview/rendering safeguard. It is not a Thai standard, a road-design limit, or a future intersection limit. Future intersection modules should define their own preview extent settings, such as `approachLengthMeters`. Phase 1 does not expose a drawing-settings UI.
 
 ### Road Elements
 

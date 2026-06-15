@@ -8,7 +8,7 @@ function BrandMark() {
   )
 }
 
-export function TopBar() {
+export function TopBar({ issueCount }: { issueCount: number }) {
   return (
     <header className="top-bar">
       <div className="brand">
@@ -32,10 +32,10 @@ export function TopBar() {
         </div>
         <button type="button" className="validate-button" disabled>
           Validate
-          <span className="button-count">2</span>
+          <span className="button-count">{issueCount}</span>
         </button>
-        <button type="button" className="primary-button" disabled>
-          Export SVG
+        <button type="button" className="primary-button" disabled title="Not implemented in Phase 1">
+          Export SVG · Later
         </button>
       </div>
     </header>

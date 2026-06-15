@@ -181,14 +181,18 @@ Static app shell and static SVG preview:
 
 Straight road segment generator:
 
-- forward/opposing lane count;
+- eastbound/westbound lane count;
+- two-way and one-way straight road preview;
 - shoulder width;
 - median type and width;
 - lane/edge lines;
 - direction arrows;
-- basic marking placement;
-- SVG export;
+- non-blocking parameter validation;
 - geometry tests.
+
+SVG export is deferred beyond the current Phase 1 implementation.
+
+The Phase 1 straight-road SVG preview uses a module-specific 500 m rendering extent cap to keep SVG coordinates finite. This safeguard is not a Thai standard, a road-design limit, or a future intersection limit. Future intersection modules should use their own preview extent settings, such as `approachLengthMeters`.
 
 ## MVP Exclusions
 

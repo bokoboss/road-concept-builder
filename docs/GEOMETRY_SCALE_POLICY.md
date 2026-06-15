@@ -37,13 +37,16 @@ Convert meters to SVG pixels using a single drawing scale setting:
 pixels = meters * pxPerMeter
 ```
 
-Recommended default for early development:
+Current Phase 1 default:
 
 ```ts
-pxPerMeter = 20
+pxPerMeter = 18
 ```
 
-This can be adjusted later through drawing settings.
+Phase 1 owns this value in a minimal drawing-settings object. The renderer may reduce the effective display scale to fit a wide road safely inside the SVG preview.
+Invalid drawing settings use safe Phase 1 defaults. Lane-generation loops also apply an internal absolute cap of 16 lanes per direction, independent of caller-supplied drawing settings.
+
+The Phase 1 straight-road SVG preview clamps its segment extent to 500 m and bounds preview scale so meter-to-pixel conversion remains finite. This is a module-specific preview/rendering safeguard only. It is not a Thai standard, a road-design limit, or a future intersection limit. Future intersection modules should use their own preview extent settings, such as `approachLengthMeters`.
 
 ## Coordinate System
 
@@ -87,7 +90,7 @@ Straight road segment geometry:
 - median;
 - lane lines;
 - arrows;
-- basic marking placement.
+- generated through-arrow placement.
 
 ### Phase 2
 
