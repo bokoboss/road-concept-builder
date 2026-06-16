@@ -25,13 +25,13 @@ The product should not feel like:
 Use this interaction model:
 
 ```text
-Choose template → configure parameters → add components/markings → validate → export
+Choose template -> configure parameters -> add components/markings -> validate -> export
 ```
 
 Avoid this model:
 
 ```text
-Blank canvas → draw every line manually → manually align every symbol
+Blank canvas -> draw every line manually -> manually align every symbol
 ```
 
 ## Layout
@@ -39,14 +39,14 @@ Blank canvas → draw every line manually → manually align every symbol
 Use a clean 3-panel desktop layout:
 
 ```text
-┌──────────────────────────────────────────────────────────────┐
-│ Top Bar: Project / Undo / Redo / Validate / Export           │
-├───────────────┬───────────────────────────────┬──────────────┤
-│ Left Panel    │ Center SVG Canvas             │ Right Panel  │
-│ Templates     │ Live Preview                  │ Inspector    │
-│ Components    │ Pan / Zoom / Fit              │ Validation   │
-│ Markings      │                               │ Properties   │
-└───────────────┴───────────────────────────────┴──────────────┘
++--------------------------------------------------------------+
+| Top Bar: Project / Undo / Redo / Validate / Export           |
++---------------+-------------------------------+--------------+
+| Left Panel    | Center SVG Canvas             | Right Panel  |
+| Templates     | Live Preview                  | Inspector    |
+| Components    | Pan / Zoom / Fit              | Validation   |
+| Markings      |                               | Properties   |
++---------------+-------------------------------+--------------+
 ```
 
 ### Top Bar
@@ -134,7 +134,7 @@ Pavement marking must be a first-class UX area.
 Preferred workflow:
 
 ```text
-Select lane/approach/area → Add Marking → system places it automatically → adjust offset/repeat/scale if needed
+Select lane/approach/area -> Add Marking -> system places it automatically -> adjust offset/repeat/scale if needed
 ```
 
 The marking palette should be in the left panel.

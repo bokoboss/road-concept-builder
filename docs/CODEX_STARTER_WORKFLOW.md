@@ -4,7 +4,7 @@
 
 Use this workflow to prevent Codex from over-building the app or jumping into intersections, CAD behavior, or full pavement marking libraries too early.
 
-## Step 1 — Read and Summarize
+## Step 1 - Read and Summarize
 
 Run this first:
 
@@ -22,7 +22,7 @@ Read AGENTS.md and these docs:
 Summarize the product intent, UX principles, negative scope, and recommended first implementation task. Do not write code yet.
 ```
 
-## Step 2 — Plan Phase 0 Only
+## Step 2 - Plan Phase 0 Only
 
 ```text
 /plan
@@ -40,7 +40,7 @@ Scope:
 Return a concise implementation plan and file list before coding.
 ```
 
-## Step 3 — Implement Phase 0
+## Step 3 - Implement Phase 0
 
 ```text
 /goal
@@ -57,7 +57,7 @@ Priorities:
 Do not implement real road geometry, intersections, U-turns, roundabouts, database, login, cloud sync, AI prompt-to-diagram, or CAD-style editing.
 ```
 
-## Step 4 — Review Phase 0
+## Step 4 - Review Phase 0
 
 ```text
 /review
@@ -77,7 +77,7 @@ Check for:
 - broken run/build/test commands.
 ```
 
-## Step 5 — Plan Phase 1 Only
+## Step 5 - Plan Phase 1 Only
 
 After Phase 0 is reviewed and accepted:
 

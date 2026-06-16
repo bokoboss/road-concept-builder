@@ -52,7 +52,7 @@ When adding a marking:
 The preferred user flow is:
 
 ```text
-Select lane/approach/area → Add Marking → auto-place → adjust in inspector
+Select lane/approach/area -> Add Marking -> auto-place -> adjust in inspector
 ```
 
 Do not make users manually draw standard lane markings or symbols.

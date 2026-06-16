@@ -37,16 +37,16 @@ The product should feel closer to **Streetmix / Canva / VISSIM-style pavement ma
 
 Read these before implementation:
 
-- `AGENTS.md` — repository-level instructions for Codex and contributors.
-- `docs/PRD.md` — product definition and scope.
-- `docs/UI_UX_GUIDELINES.md` — UI/UX direction and interaction principles.
-- `docs/PAVEMENT_MARKING_SYSTEM.md` — core marking placement, library, and data model.
-- `docs/PRODUCT_BOUNDARY_AND_SCOPE.md` — what the app is and is not.
-- `docs/GEOMETRY_SCALE_POLICY.md` — scale, units, and accuracy policy.
-- `docs/DATA_MODEL.md` — domain objects and JSON-serializable project model.
-- `docs/MVP_ROADMAP.md` — phased implementation plan.
-- `docs/VALIDATION_RULES.md` — advisory validation philosophy and rule inventory.
-- `docs/CODEX_STARTER_WORKFLOW.md` — recommended Codex workflow and prompts.
+- `AGENTS.md` - repository-level instructions for Codex and contributors.
+- `docs/PRD.md` - product definition and scope.
+- `docs/UI_UX_GUIDELINES.md` - UI/UX direction and interaction principles.
+- `docs/PAVEMENT_MARKING_SYSTEM.md` - core marking placement, library, and data model.
+- `docs/PRODUCT_BOUNDARY_AND_SCOPE.md` - what the app is and is not.
+- `docs/GEOMETRY_SCALE_POLICY.md` - scale, units, and accuracy policy.
+- `docs/DATA_MODEL.md` - domain objects and JSON-serializable project model.
+- `docs/MVP_ROADMAP.md` - phased implementation plan.
+- `docs/VALIDATION_RULES.md` - advisory validation philosophy and rule inventory.
+- `docs/CODEX_STARTER_WORKFLOW.md` - recommended Codex workflow and prompts.
 
 ## Recommended Implementation Stack
 

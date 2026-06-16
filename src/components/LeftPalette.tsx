@@ -46,19 +46,19 @@ export function LeftPalette() {
       </div>
 
       <PaletteSection title="Templates">
-        <PaletteItem icon="Ⅱ" title="Divided road segment" detail="4 lanes · raised median" selected />
-        <PaletteItem icon="═" title="Undivided road" detail="Available in Phase 1" />
+        <PaletteItem icon="2W" title="Divided road segment" detail="4 lanes - raised median" selected />
+        <PaletteItem icon="1W" title="Undivided road" detail="Available in Phase 1" />
       </PaletteSection>
 
       <PaletteSection title="Road Components">
-        <PaletteItem icon="▥" title="Median" detail="Raised or painted" />
-        <PaletteItem icon="┆" title="Lane line" detail="Dashed or solid" />
+        <PaletteItem icon="M" title="Median" detail="Raised or painted" />
+        <PaletteItem icon="LL" title="Lane line" detail="Dashed or solid" />
       </PaletteSection>
 
       <PaletteSection title="Pavement Markings">
-        <PaletteItem icon="↑" title="Lane-use arrows" detail="Through and turn" />
-        <PaletteItem icon="━" title="Stop line" detail="Transverse line" />
-        <PaletteItem icon="≡" title="Warning bars" detail="Project assumption" />
+        <PaletteItem icon="AR" title="Lane-use arrows" detail="Through and turn" />
+        <PaletteItem icon="SL" title="Stop line" detail="Transverse line" />
+        <PaletteItem icon="WB" title="Warning bars" detail="Project assumption" />
       </PaletteSection>
 
       <PaletteSection title="Presets">

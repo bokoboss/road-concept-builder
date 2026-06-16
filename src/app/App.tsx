@@ -37,7 +37,7 @@ export function App() {
 
           <div className="canvas-footer">
             <span>Live Phase 2 preview</span>
-            <span>SVG canvas · approximate scale</span>
+            <span>SVG canvas - approximate scale</span>
           </div>
         </section>
         <RightInspector parameters={parameters} issues={issues} onChange={setParameters} />

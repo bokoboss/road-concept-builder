@@ -62,7 +62,7 @@ This product is not:
 ## Core Workflow
 
 ```text
-Choose situation/template → configure geometry → add pavement markings → validate → export
+Choose situation/template -> configure geometry -> add pavement markings -> validate -> export
 ```
 
 ## Major Feature Areas

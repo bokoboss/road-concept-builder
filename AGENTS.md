@@ -46,7 +46,7 @@ Do not require the user to manually draw each lane line or marking.
 Use this core workflow:
 
 ```text
-Choose situation/template → configure parameters → add pavement markings → validate → export
+Choose situation/template -> configure parameters -> add pavement markings -> validate -> export
 ```
 
 The UI should use a clean 3-panel layout:

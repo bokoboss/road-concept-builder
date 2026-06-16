@@ -26,7 +26,7 @@ describe('Phase 1 app shell', () => {
     expect(markup).toContain('Parametric straight road segment')
     expect(markup).toContain('min="0" max="8"')
     expect(markup).toContain('min="2.5" max="5"')
-    expect(markup).toContain('Export SVG · Later')
+    expect(markup).toContain('Export SVG - Later')
     expect(markup).toContain('GEN-001')
   })
 

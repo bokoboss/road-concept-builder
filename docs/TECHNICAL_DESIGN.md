@@ -19,16 +19,16 @@ Do not build a CAD system.
 
 ```text
 src/
-├─ app/                 # app shell, routes if needed
-├─ ui/                  # reusable UI components
-├─ domain/              # TypeScript domain model
-├─ geometry/            # meter-based geometry calculations
-├─ renderers/           # SVG rendering components/functions
-├─ markings/            # pavement marking definitions and placement
-├─ validation/          # validation rules
-├─ presets/             # road/intersection presets
-├─ export/              # SVG/PNG/project export
-└─ tests/               # unit tests
+|- app/                 # app shell, routes if needed
+|- ui/                  # reusable UI components
+|- domain/              # TypeScript domain model
+|- geometry/            # meter-based geometry calculations
+|- renderers/           # SVG rendering components/functions
+|- markings/            # pavement marking definitions and placement
+|- validation/          # validation rules
+|- presets/             # road/intersection presets
+|- export/              # SVG/PNG/project export
+`- tests/               # unit tests
 ```
 
 ## Separation of Concerns
@@ -67,12 +67,12 @@ PNG export can come later.
 
 ```text
 Project JSON
-→ domain model
-→ geometry calculations
-→ marking placement
-→ validation
-→ SVG render
-→ export
+-> domain model
+-> geometry calculations
+-> marking placement
+-> validation
+-> SVG render
+-> export
 ```
 
 ## Phase 0 Implementation

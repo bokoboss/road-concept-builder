@@ -39,14 +39,14 @@ Rendering rules:
 
 2. Lane label rules
 - For twoWay + painted/raised median:
-  - use “Outer / near-side lane” and “Median-side lane”.
+  - use "Outer / near-side lane" and "Median-side lane".
 - For twoWay + no median:
-  - do not use “Median-side lane”.
-  - use “Outer / near-side lane” and “Centerline-side lane”.
+  - do not use "Median-side lane".
+  - use "Outer / near-side lane" and "Centerline-side lane".
 - For one-way:
-  - do not use “Median-side lane”.
-  - for eastbound one-way, use simple labels such as “Left / near-side lane” and “Right / off-side lane”.
-  - for westbound one-way, use simple labels such as “Left / near-side lane” and “Right / off-side lane”, positioned consistently with the travel direction.
+  - do not use "Median-side lane".
+  - for eastbound one-way, use simple labels such as "Left / near-side lane" and "Right / off-side lane".
+  - for westbound one-way, use simple labels such as "Left / near-side lane" and "Right / off-side lane", positioned consistently with the travel direction.
   - avoid clutter for high lane counts.
 
 3. Numeric input contract

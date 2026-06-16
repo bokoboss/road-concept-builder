@@ -74,7 +74,7 @@ export function RightInspector({ parameters, issues, onChange }: RightInspectorP
 
         <div className="status-card">
           <span>Drawing context</span>
-          <strong>THAILAND · LEFT-HAND TRAFFIC</strong>
+          <strong>THAILAND - LEFT-HAND TRAFFIC</strong>
           <p>Eastbound is upper; westbound is lower. Dimensions are concept assumptions.</p>
         </div>
 

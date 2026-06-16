@@ -8,7 +8,7 @@ Do not implement all road objects at once.
 Do not start with a CAD-like editor.
 Do not prioritize architecture purity over a working UI.
 
-## Phase 0 — Static App Shell and UX Prototype
+## Phase 0 - Static App Shell and UX Prototype
 
 ### Goal
 
@@ -35,7 +35,7 @@ Validate the product feel before deep geometry implementation.
 - left panel and right inspector establish the intended workflow;
 - no negative-scope features added.
 
-## Phase 1 — Straight Road Segment Generator
+## Phase 1 - Straight Road Segment Generator
 
 ### Goal
 
@@ -77,7 +77,7 @@ The Phase 1 straight-road SVG preview uses a module-specific 500 m rendering ext
 
 SVG export remains disabled and is deferred beyond the current Phase 1 implementation.
 
-## Phase 2 — U-turn and Median Opening
+## Phase 2 - U-turn and Median Opening
 
 ### Goal
 
@@ -99,7 +99,7 @@ Support common Thai road concept cases involving median openings and U-turns.
 - invalid U-turn configurations keep rendering the base straight road and show warnings;
 - no U-turn pocket, taper, storage lane, or warning-bar system is introduced.
 
-## Phase 2B — U-turn Pocket and Approach Treatments
+## Phase 2B - U-turn Pocket and Approach Treatments
 
 Deferred until the median-opening-only Phase 2 is reviewed:
 
@@ -109,7 +109,7 @@ Deferred until the median-opening-only Phase 2 is reviewed:
 - optional warning bars;
 - pocket-arrow completeness validation.
 
-## Phase 3 — Basic Intersection
+## Phase 3 - Basic Intersection
 
 ### Goal
 
@@ -134,7 +134,7 @@ Build approach-based intersection modeling.
 - signalized approaches can show stop lines;
 - validation catches obvious missing controls.
 
-## Phase 4 — Pocket Lanes and Auxiliary Lanes
+## Phase 4 - Pocket Lanes and Auxiliary Lanes
 
 ### Goal
 
@@ -151,7 +151,7 @@ Support common intersection and access improvement concepts.
 - deceleration lane placeholder;
 - acceleration lane placeholder.
 
-## Phase 5 — Slip Lane and Channelization
+## Phase 5 - Slip Lane and Channelization
 
 ### Goal
 
@@ -166,7 +166,7 @@ Support free-left and channelized turn movements.
 - crosswalk placement options;
 - merge/direct-exit options.
 
-## Phase 6 — Roundabout and Access Management
+## Phase 6 - Roundabout and Access Management
 
 ### Goal
 

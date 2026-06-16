@@ -35,7 +35,7 @@ export function TopBar({ issueCount }: { issueCount: number }) {
           <span className="button-count">{issueCount}</span>
         </button>
         <button type="button" className="primary-button" disabled title="Not implemented in Phase 1">
-          Export SVG · Later
+          Export SVG - Later
         </button>
       </div>
     </header>

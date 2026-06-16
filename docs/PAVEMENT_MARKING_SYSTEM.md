@@ -15,7 +15,7 @@ Use **smart placement** rather than freehand drawing.
 Preferred workflow:
 
 ```text
-Select lane / approach / road segment / area → choose marking → system places marking automatically → adjust parameters
+Select lane / approach / road segment / area -> choose marking -> system places marking automatically -> adjust parameters
 ```
 
 Do not require users to draw every marking manually.
