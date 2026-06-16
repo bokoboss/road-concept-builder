@@ -89,6 +89,21 @@ describe('validateStraightRoad', () => {
     }
   })
 
+  it('keeps median-width validation warnings when U-turn is enabled', () => {
+    for (const overrides of [
+      { medianType: 'painted' as const, medianWidthMeters: 0 },
+      { medianType: 'raised' as const, medianWidthMeters: Number.NaN },
+      { medianType: 'raised' as const, medianWidthMeters: Number.POSITIVE_INFINITY },
+    ]) {
+      expect(
+        validate({
+          ...overrides,
+          uTurn: { ...defaultStraightRoadParameters.uTurn, enabled: true },
+        }),
+      ).toEqual(expect.arrayContaining([expect.objectContaining({ ruleId: 'SEG-002' })]))
+    }
+  })
+
   it('ignores invalid stored median width when median type is none', () => {
     const ruleIds = validate({ medianType: 'none', medianWidthMeters: Number.NaN }).map(
       (issue) => issue.ruleId,
@@ -113,5 +128,70 @@ describe('validateStraightRoad', () => {
         }),
       ]),
     )
+  })
+
+  it('adds no U-turn warnings when U-turn is disabled', () => {
+    expect(validate().map((issue) => issue.ruleId).filter((ruleId) => ruleId.startsWith('UTN-'))).toEqual([])
+  })
+
+  it('warns when an enabled U-turn has no median', () => {
+    expect(
+      validate({
+        medianType: 'none',
+        uTurn: { ...defaultStraightRoadParameters.uTurn, enabled: true },
+      }),
+    ).toEqual(expect.arrayContaining([expect.objectContaining({ ruleId: 'UTN-002' })]))
+  })
+
+  it('warns when an enabled U-turn is not on a two-way road', () => {
+    for (const overrides of [
+      { westboundLaneCount: 0 },
+      { eastboundLaneCount: 0 },
+      { eastboundLaneCount: 0, westboundLaneCount: 0 },
+    ]) {
+      expect(
+        validate({
+          ...overrides,
+          uTurn: { ...defaultStraightRoadParameters.uTurn, enabled: true },
+        }),
+      ).toEqual(expect.arrayContaining([expect.objectContaining({ ruleId: 'UTN-001' })]))
+    }
+  })
+
+  it('warns for invalid U-turn opening widths', () => {
+    for (const openingWidthMeters of [Number.NaN, 1.9, 12.1]) {
+      expect(
+        validate({
+          uTurn: {
+            ...defaultStraightRoadParameters.uTurn,
+            enabled: true,
+            openingWidthMeters,
+          },
+        }),
+      ).toEqual(expect.arrayContaining([expect.objectContaining({ ruleId: 'UTN-003' })]))
+    }
+  })
+
+  it('warns when the full U-turn opening does not fit within the preview segment', () => {
+    for (const positionMeters of [Number.NaN, 2, 40]) {
+      expect(
+        validate({
+          uTurn: {
+            ...defaultStraightRoadParameters.uTurn,
+            enabled: true,
+            positionMeters,
+            openingWidthMeters: 6,
+          },
+        }),
+      ).toEqual(expect.arrayContaining([expect.objectContaining({ ruleId: 'UTN-004' })]))
+    }
+  })
+
+  it('adds no U-turn warnings for a valid opening', () => {
+    const ruleIds = validate({
+      uTurn: { ...defaultStraightRoadParameters.uTurn, enabled: true },
+    }).map((issue) => issue.ruleId)
+
+    expect(ruleIds.filter((ruleId) => ruleId.startsWith('UTN-'))).toEqual([])
   })
 })

@@ -207,13 +207,18 @@ Phase 1:
 - lane lines;
 - edge lines;
 - median;
-- direction arrows;
-- SVG export.
+- direction arrows.
+
+Real SVG export remains disabled and out of scope for Phase 1 and Phase 2A. Export is a later feature.
 
 Phase 2:
 
 - U-turn opening;
-- U-turn pocket;
 - U-turn arrow;
+
+Phase 2B:
+
+- U-turn pocket;
 - warning bars;
-- taper.
+- taper;
+- storage length.

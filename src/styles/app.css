@@ -380,6 +380,32 @@ button {
   stroke-linejoin: round;
 }
 
+.uturn-arrow {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.uturn-opening-outline {
+  fill: none;
+  stroke: #4fa0cd;
+  stroke-width: 3;
+  stroke-dasharray: 7 5;
+}
+
+.uturn-opening-label rect {
+  fill: #e7f1f7;
+  stroke: #9bc5dc;
+}
+
+.uturn-opening-label text {
+  fill: #385d72;
+  font-size: 9px;
+  font-weight: 700;
+}
+
 .road-label rect {
   fill: #fff;
   stroke: #d5dee2;

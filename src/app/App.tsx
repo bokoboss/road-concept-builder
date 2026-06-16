@@ -36,7 +36,7 @@ export function App() {
           </div>
 
           <div className="canvas-footer">
-            <span>Live Phase 1 preview</span>
+            <span>Live Phase 2 preview</span>
             <span>SVG canvas · approximate scale</span>
           </div>
         </section>

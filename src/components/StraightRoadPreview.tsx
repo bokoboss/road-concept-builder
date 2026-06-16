@@ -45,6 +45,33 @@ function ThroughArrow({ x, y, rotate }: { x: number; y: number; rotate: number }
   )
 }
 
+function UTurnArrow({
+  x,
+  y,
+  targetY,
+  direction,
+}: {
+  x: number
+  y: number
+  targetY: number
+  direction: 'eastbound-to-westbound' | 'westbound-to-eastbound'
+}) {
+  const horizontalScale = direction === 'eastbound-to-westbound' ? 1 : -1
+  const targetOffset = targetY - y
+
+  return (
+    <g
+      data-testid="uturn-arrow"
+      data-direction={direction}
+      transform={`translate(${x} ${y}) scale(${horizontalScale} 1)`}
+      className="uturn-arrow"
+    >
+      <path d={`M-25 0H3C22 0 22 ${targetOffset} 3 ${targetOffset}H-12`} />
+      <path d={`m-4 ${targetOffset - 8}-8 8 8 8`} />
+    </g>
+  )
+}
+
 function medianClassName(medianType: MedianType) {
   return medianType === 'painted' ? 'painted-median' : 'raised-median'
 }
@@ -144,13 +171,32 @@ export function StraightRoadPreview({
               px={px}
             />
           ))}
-          {geometry.median && (
+          {geometry.medianSections.map((medianSection) => (
             <RoadRect
-              rect={geometry.median}
+              key={medianSection.id}
+              rect={medianSection}
               className={medianClassName(parameters.medianType)}
               roadTop={roadTop}
               px={px}
             />
+          ))}
+          {geometry.medianOpening && (
+            <>
+              <RoadRect
+                rect={geometry.medianOpening}
+                className="road-surface"
+                roadTop={roadTop}
+                px={px}
+              />
+              <rect
+                data-testid="uturn-median-opening"
+                className="uturn-opening-outline"
+                x={ROAD_X + px(geometry.medianOpening.x)}
+                y={toSvgY(geometry.medianOpening.y)}
+                width={px(geometry.medianOpening.width)}
+                height={px(geometry.medianOpening.height)}
+              />
+            </>
           )}
 
           {geometry.edgeLines.map((line, index) => (
@@ -201,6 +247,33 @@ export function StraightRoadPreview({
               rotate={arrow.rotationDegrees}
             />
           ))}
+          {geometry.uTurnArrow && (
+            <UTurnArrow
+              x={ROAD_X + px(geometry.uTurnArrow.x)}
+              y={toSvgY(geometry.uTurnArrow.y)}
+              targetY={toSvgY(geometry.uTurnArrow.targetY)}
+              direction={geometry.uTurnArrow.direction}
+            />
+          )}
+
+          {geometry.medianOpening && (
+            <g className="uturn-opening-label" data-testid="uturn-opening-label">
+              <rect
+                x={ROAD_X + px(geometry.medianOpening.x + geometry.medianOpening.width / 2) - 49}
+                y={toSvgY(geometry.medianOpening.y) - 29}
+                width="98"
+                height="20"
+                rx="5"
+              />
+              <text
+                x={ROAD_X + px(geometry.medianOpening.x + geometry.medianOpening.width / 2)}
+                y={toSvgY(geometry.medianOpening.y) - 15}
+                textAnchor="middle"
+              >
+                U-turn opening
+              </text>
+            </g>
+          )}
 
           <g className="lane-position-label">
             {geometry.lanes

@@ -1,9 +1,11 @@
 import {
   defaultStraightRoadParameters,
   phase1NumericLimits,
+  phase2UTurnNumericLimits,
   sanitizePhase1DrawingSettings,
   type Phase1DrawingSettings,
   type StraightRoadParameters,
+  type UTurnDirection,
 } from '../domain/straightRoad'
 
 export type RoadDirection = 'eastbound' | 'westbound'
@@ -48,6 +50,20 @@ export type ArrowGeometry = {
   rotationDegrees: 90 | -90
 }
 
+export type MedianOpeningGeometry = RectGeometry & {
+  direction: UTurnDirection
+}
+
+export type UTurnArrowGeometry = {
+  id: string
+  direction: UTurnDirection
+  sourceLaneId: string
+  targetLaneId: string
+  x: number
+  y: number
+  targetY: number
+}
+
 export type StraightRoadGeometry = {
   operationMode: RoadOperationMode
   lengthMeters: number
@@ -55,12 +71,15 @@ export type StraightRoadGeometry = {
   carriageways: RectGeometry[]
   shoulders: RectGeometry[]
   median: RectGeometry | null
+  medianSections: RectGeometry[]
+  medianOpening: MedianOpeningGeometry | null
   lanes: LaneGeometry[]
   laneDividerLines: LineGeometry[]
   edgeLines: LineGeometry[]
   medianEdgeLines: LineGeometry[]
   directionSeparationLine: LineGeometry | null
   arrows: ArrowGeometry[]
+  uTurnArrow: UTurnArrowGeometry | null
 }
 
 function clamp(value: number, min: number, max: number) {
@@ -75,6 +94,16 @@ function normalizeLaneCount(value: number, maxLaneCount: number) {
 function normalizeDimension(value: number, min: number, max: number, fallback: number) {
   if (!Number.isFinite(value)) return fallback
   return clamp(value, min, max)
+}
+
+function hasUsablePhysicalMedianForUTurn(parameters: StraightRoadParameters) {
+  return (
+    parameters.medianType !== 'none' &&
+    Number.isFinite(parameters.medianWidthMeters) &&
+    parameters.medianWidthMeters > 0 &&
+    parameters.medianWidthMeters >= phase1NumericLimits.medianWidthMeters.min &&
+    parameters.medianWidthMeters <= phase1NumericLimits.medianWidthMeters.max
+  )
 }
 
 function deriveOperationMode(
@@ -289,6 +318,78 @@ export function buildStraightRoadGeometry(
         rotationDegrees: lane.direction === 'eastbound' ? 90 : -90,
       }))
     : []
+  const openingWidth = parameters.uTurn.openingWidthMeters
+  const openingPosition = parameters.uTurn.positionMeters
+  const openingStart = openingPosition - openingWidth / 2
+  const openingEnd = openingPosition + openingWidth / 2
+  const hasValidUTurn =
+    parameters.uTurn.enabled &&
+    operationMode === 'twoWay' &&
+    median !== null &&
+    hasUsablePhysicalMedianForUTurn(parameters) &&
+    Number.isFinite(openingWidth) &&
+    openingWidth >= phase2UTurnNumericLimits.openingWidthMeters.min &&
+    openingWidth <= phase2UTurnNumericLimits.openingWidthMeters.max &&
+    Number.isFinite(openingPosition) &&
+    openingStart >= 0 &&
+    openingEnd <= lengthMeters
+  const medianOpening: MedianOpeningGeometry | null = hasValidUTurn
+    ? {
+        id: 'uturn-median-opening',
+        direction: parameters.uTurn.direction,
+        x: openingStart,
+        y: median.y,
+        width: openingWidth,
+        height: median.height,
+      }
+    : null
+  const medianSections: RectGeometry[] = median
+    ? medianOpening
+      ? [
+          { ...median, id: 'median-before-opening', width: medianOpening.x },
+          {
+            id: 'median-after-opening',
+            x: openingEnd,
+            y: median.y,
+            width: lengthMeters - openingEnd,
+            height: median.height,
+          },
+        ].filter((section) => section.width > 0)
+      : [median]
+    : []
+  const medianEdgeLines = median
+    ? medianOpening
+      ? [median.y, median.y + median.height].flatMap((y) => [
+          { x1: 0, y1: y, x2: openingStart, y2: y },
+          { x1: openingEnd, y1: y, x2: lengthMeters, y2: y },
+        ])
+      : [horizontalLine(median.y, lengthMeters), horizontalLine(median.y + median.height, lengthMeters)]
+    : []
+  const sourceDirection =
+    parameters.uTurn.direction === 'eastbound-to-westbound' ? 'eastbound' : 'westbound'
+  const sourceLanes = hasValidUTurn
+    ? lanes.filter((lane) => lane.direction === sourceDirection)
+    : []
+  const sourceLane =
+    sourceDirection === 'eastbound' ? sourceLanes.at(-1) : sourceLanes.at(0)
+  const targetDirection = sourceDirection === 'eastbound' ? 'westbound' : 'eastbound'
+  const targetLanes = hasValidUTurn
+    ? lanes.filter((lane) => lane.direction === targetDirection)
+    : []
+  const targetLane =
+    targetDirection === 'eastbound' ? targetLanes.at(-1) : targetLanes.at(0)
+  const uTurnArrow: UTurnArrowGeometry | null =
+    sourceLane && targetLane && parameters.uTurn.showArrow
+      ? {
+          id: 'uturn-arrow',
+          direction: parameters.uTurn.direction,
+          sourceLaneId: sourceLane.id,
+          targetLaneId: targetLane.id,
+          x: openingPosition,
+          y: sourceLane.centerY,
+          targetY: targetLane.centerY,
+        }
+      : null
 
   return {
     operationMode,
@@ -297,16 +398,17 @@ export function buildStraightRoadGeometry(
     carriageways,
     shoulders,
     median,
+    medianSections,
+    medianOpening,
     lanes,
     laneDividerLines,
     edgeLines,
-    medianEdgeLines: median
-      ? [horizontalLine(median.y, lengthMeters), horizontalLine(median.y + median.height, lengthMeters)]
-      : [],
+    medianEdgeLines,
     directionSeparationLine:
       operationMode === 'twoWay' && !hasPhysicalMedian
         ? horizontalLine(eastboundY + eastboundHeight, lengthMeters)
         : null,
     arrows,
+    uTurnArrow,
   }
 }

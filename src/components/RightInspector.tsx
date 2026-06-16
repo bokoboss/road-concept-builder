@@ -2,8 +2,10 @@ import type { ChangeEvent } from 'react'
 import {
   phase1DrawingSettings,
   phase1NumericLimits,
+  phase2UTurnNumericLimits,
   type MedianType,
   type StraightRoadParameters,
+  type UTurnDirection,
 } from '../domain/straightRoad'
 import type { ValidationIssue } from '../validation/validateStraightRoad'
 import { ValidationPanel } from './ValidationPanel'
@@ -56,6 +58,10 @@ export function RightInspector({ parameters, issues, onChange }: RightInspectorP
     key: Key,
     value: StraightRoadParameters[Key],
   ) => onChange({ ...parameters, [key]: value })
+  const updateUTurn = <Key extends keyof StraightRoadParameters['uTurn']>(
+    key: Key,
+    value: StraightRoadParameters['uTurn'][Key],
+  ) => onChange({ ...parameters, uTurn: { ...parameters.uTurn, [key]: value } })
 
   return (
     <aside className="right-panel">
@@ -138,6 +144,58 @@ export function RightInspector({ parameters, issues, onChange }: RightInspectorP
               type="checkbox"
               checked={parameters.showLaneArrows}
               onChange={(event) => update('showLaneArrows', event.target.checked)}
+            />
+          </label>
+        </div>
+
+        <div className="inspector-group">
+          <h3>U-turn / median opening</h3>
+          <label className="inspector-field checkbox-field">
+            <span>Enable U-turn opening</span>
+            <input
+              type="checkbox"
+              checked={parameters.uTurn.enabled}
+              onChange={(event) => updateUTurn('enabled', event.target.checked)}
+            />
+          </label>
+          <label className="inspector-field">
+            <span>Direction</span>
+            <select
+              value={parameters.uTurn.direction}
+              disabled={!parameters.uTurn.enabled}
+              onChange={(event) =>
+                updateUTurn('direction', event.target.value as UTurnDirection)
+              }
+            >
+              <option value="eastbound-to-westbound">Eastbound to westbound</option>
+              <option value="westbound-to-eastbound">Westbound to eastbound</option>
+            </select>
+          </label>
+          <NumberField
+            label="Opening position (m)"
+            value={parameters.uTurn.positionMeters}
+            step={0.5}
+            min={0}
+            max={phase1DrawingSettings.segmentLengthMeters}
+            disabled={!parameters.uTurn.enabled}
+            onChange={(value) => updateUTurn('positionMeters', value)}
+          />
+          <NumberField
+            label="Opening width (m)"
+            value={parameters.uTurn.openingWidthMeters}
+            step={0.5}
+            min={phase2UTurnNumericLimits.openingWidthMeters.min}
+            max={phase2UTurnNumericLimits.openingWidthMeters.max}
+            disabled={!parameters.uTurn.enabled}
+            onChange={(value) => updateUTurn('openingWidthMeters', value)}
+          />
+          <label className="inspector-field checkbox-field">
+            <span>Show U-turn arrow</span>
+            <input
+              type="checkbox"
+              checked={parameters.uTurn.showArrow}
+              disabled={!parameters.uTurn.enabled}
+              onChange={(event) => updateUTurn('showArrow', event.target.checked)}
             />
           </label>
         </div>

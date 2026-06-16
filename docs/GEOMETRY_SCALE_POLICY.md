@@ -94,13 +94,15 @@ Straight road segment geometry:
 
 ### Phase 2
 
-U-turn and lane transition geometry:
+Median-opening-only U-turn geometry:
 
 - median opening;
-- U-turn pocket;
-- taper;
-- storage lane;
-- warning bars.
+- opening center position measured from the segment's left/west edge;
+- opening width in meters;
+- full opening constrained to the straight-road preview segment;
+- optional generated U-turn arrow from the correct median-side source lane.
+
+Phase 2 invalid U-turn configurations render the base Phase 1 road without partial U-turn geometry. U-turn pockets, tapers, storage lanes, and warning bars are deferred to Phase 2B.
 
 ### Phase 3
 

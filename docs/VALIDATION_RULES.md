@@ -30,7 +30,6 @@ Only errors should block operations that cannot be completed.
 | `GEO-002` | warning | Straight road preview must have at least one lane across either direction. |
 | `GEO-003` | warning | Lane drop should include taper. |
 | `GEO-004` | warning | Lane addition should include taper or transition marking. |
-| `GEO-005` | error | U-turn opening requires a median or defined crossing area. |
 | `GEO-006` | warning | U-turn pocket should include storage length and taper length. |
 
 ## Left-Hand Traffic Rules
@@ -53,6 +52,17 @@ Only errors should block operations that cannot be completed.
 | `SEG-104` | warning | Phase 1 painted or raised median width must be finite and between 0 and 20.0 m. Ignored when median type is `none`. |
 
 The Phase 1 numeric ranges are practical safeguards for stable concept preview rendering. They are not formal Thai-standard limits. Lane-count warning instances use direction-specific issue IDs so eastbound and westbound problems remain distinguishable.
+
+## U-turn / Median Opening Rules
+
+| Rule ID | Severity | Rule |
+|---|---:|---|
+| `UTN-001` | warning | Enabled Phase 2 U-turn opening requires two-way operation with lanes in both directions. |
+| `UTN-002` | warning | Enabled Phase 2 U-turn opening requires a painted or raised median. |
+| `UTN-003` | warning | Opening width must be finite and between 2 and 12 m. |
+| `UTN-004` | warning | Opening position must be finite and the full opening must fit within the straight-road preview segment. |
+
+The Phase 2 opening-width range is a practical preview safeguard and project assumption, not a formal Thai-standard limit. Invalid U-turn configurations keep the base straight-road preview and do not render partial U-turn geometry.
 
 ## Intersection Rules
 

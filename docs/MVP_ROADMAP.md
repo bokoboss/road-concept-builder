@@ -85,20 +85,29 @@ Support common Thai road concept cases involving median openings and U-turns.
 
 ### Scope
 
-- median opening;
-- U-turn pocket;
-- storage length;
-- taper length;
-- U-turn arrow;
-- optional warning bars;
-- validation if median is missing;
-- validation if U-turn pocket has no arrow.
+- one median opening on the existing straight-road segment;
+- opening center position and width in meters;
+- eastbound-to-westbound or westbound-to-eastbound direction;
+- optional feature-specific generated U-turn arrow;
+- split median surface and edge lines around the opening;
+- non-blocking validation for operation mode, median type, width, and position.
 
 ### Exit Criteria
 
-- user can add U-turn opening to a divided road;
-- user can add U-turn pocket with schematic taper;
-- validation warns about incomplete U-turn logic.
+- user can add one U-turn opening to a two-way road with a painted or raised median;
+- U-turn direction respects Thailand left-hand traffic;
+- invalid U-turn configurations keep rendering the base straight road and show warnings;
+- no U-turn pocket, taper, storage lane, or warning-bar system is introduced.
+
+## Phase 2B — U-turn Pocket and Approach Treatments
+
+Deferred until the median-opening-only Phase 2 is reviewed:
+
+- U-turn pocket lane;
+- storage length;
+- taper length;
+- optional warning bars;
+- pocket-arrow completeness validation.
 
 ## Phase 3 — Basic Intersection
 

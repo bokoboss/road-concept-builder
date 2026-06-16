@@ -121,4 +121,83 @@ describe('Phase 1 app shell', () => {
     expect(markup).not.toContain('NaN')
     expect(markup).not.toContain('Infinity')
   })
+
+  it('exposes compact Phase 2 U-turn inspector controls', () => {
+    const markup = renderToStaticMarkup(<App />)
+
+    expect(markup).toContain('U-turn / median opening')
+    expect(markup).toContain('Enable U-turn opening')
+    expect(markup).toContain('Eastbound to westbound')
+    expect(markup).toContain('Opening position (m)')
+    expect(markup).toContain('Opening width (m)')
+    expect(markup).toContain('Show U-turn arrow')
+  })
+
+  it('keeps Phase 1 SVG rendering unchanged when U-turn is disabled', () => {
+    const markup = preview()
+
+    expect(markup).not.toContain('data-testid="uturn-median-opening"')
+    expect(markup).not.toContain('data-testid="uturn-arrow"')
+    expect(markup).not.toContain('data-testid="uturn-opening-label"')
+  })
+
+  it('renders a valid median opening, label, and eastbound-to-westbound arrow', () => {
+    const markup = preview({
+      uTurn: { ...defaultStraightRoadParameters.uTurn, enabled: true },
+    })
+
+    expect(markup).toContain('data-testid="uturn-median-opening"')
+    expect(markup).toContain('data-testid="uturn-opening-label"')
+    expect(markup).toContain('data-testid="uturn-arrow"')
+    expect(markup).toContain('data-direction="eastbound-to-westbound"')
+    expect(markup).toContain('scale(1 1)')
+  })
+
+  it('mirrors westbound-to-eastbound U-turn arrows', () => {
+    const markup = preview({
+      uTurn: {
+        ...defaultStraightRoadParameters.uTurn,
+        enabled: true,
+        direction: 'westbound-to-eastbound',
+      },
+    })
+
+    expect(markup).toContain('data-direction="westbound-to-eastbound"')
+    expect(markup).toContain('scale(-1 1)')
+  })
+
+  it('omits the optional U-turn arrow and invalid partial U-turn geometry', () => {
+    const withoutArrow = preview({
+      uTurn: {
+        ...defaultStraightRoadParameters.uTurn,
+        enabled: true,
+        showArrow: false,
+      },
+    })
+    const invalidOneWay = preview({
+      westboundLaneCount: 0,
+      uTurn: { ...defaultStraightRoadParameters.uTurn, enabled: true },
+    })
+
+    expect(withoutArrow).toContain('data-testid="uturn-median-opening"')
+    expect(withoutArrow).not.toContain('data-testid="uturn-arrow"')
+    expect(invalidOneWay).not.toContain('data-testid="uturn-median-opening"')
+    expect(invalidOneWay).not.toContain('data-testid="uturn-arrow"')
+  })
+
+  it('does not render U-turn geometry when the physical median width is invalid', () => {
+    for (const overrides of [
+      { medianType: 'painted' as const, medianWidthMeters: 0 },
+      { medianType: 'raised' as const, medianWidthMeters: Number.NaN },
+      { medianType: 'raised' as const, medianWidthMeters: Number.POSITIVE_INFINITY },
+    ]) {
+      const markup = preview({
+        ...overrides,
+        uTurn: { ...defaultStraightRoadParameters.uTurn, enabled: true },
+      })
+
+      expect(markup).not.toContain('data-testid="uturn-median-opening"')
+      expect(markup).not.toContain('data-testid="uturn-arrow"')
+    }
+  })
 })

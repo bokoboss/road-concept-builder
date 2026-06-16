@@ -1,5 +1,6 @@
 import {
   phase1NumericLimits,
+  phase2UTurnNumericLimits,
   sanitizePhase1DrawingSettings,
   type Phase1DrawingSettings,
   type StraightRoadParameters,
@@ -118,6 +119,68 @@ export function validateStraightRoad(
         severity: 'warning',
         ruleId: 'SEG-002',
         message: 'Painted or raised median width must be greater than 0.',
+      })
+    }
+  }
+
+  if (parameters.uTurn.enabled) {
+    const eastboundHasLane =
+      Number.isFinite(parameters.eastboundLaneCount) &&
+      Math.floor(parameters.eastboundLaneCount) >= 1
+    const westboundHasLane =
+      Number.isFinite(parameters.westboundLaneCount) &&
+      Math.floor(parameters.westboundLaneCount) >= 1
+
+    if (!eastboundHasLane || !westboundHasLane) {
+      issues.push({
+        id: 'uturn-requires-two-way',
+        severity: 'warning',
+        ruleId: 'UTN-001',
+        message: 'U-turn opening requires two-way operation with lanes in both directions.',
+      })
+    }
+
+    if (parameters.medianType === 'none') {
+      issues.push({
+        id: 'uturn-requires-median',
+        severity: 'warning',
+        ruleId: 'UTN-002',
+        message: 'U-turn opening requires a painted or raised median.',
+      })
+    }
+
+    if (
+      !validRange(
+        parameters.uTurn.openingWidthMeters,
+        phase2UTurnNumericLimits.openingWidthMeters.min,
+        phase2UTurnNumericLimits.openingWidthMeters.max,
+      )
+    ) {
+      issues.push({
+        id: 'uturn-opening-width',
+        severity: 'warning',
+        ruleId: 'UTN-003',
+        message: 'U-turn opening width must be finite and between 2 and 12 m.',
+      })
+    }
+
+    const safeSettings = sanitizePhase1DrawingSettings(settings)
+    const openingStart =
+      parameters.uTurn.positionMeters - parameters.uTurn.openingWidthMeters / 2
+    const openingEnd =
+      parameters.uTurn.positionMeters + parameters.uTurn.openingWidthMeters / 2
+    if (
+      !Number.isFinite(parameters.uTurn.positionMeters) ||
+      !Number.isFinite(openingStart) ||
+      !Number.isFinite(openingEnd) ||
+      openingStart < 0 ||
+      openingEnd > safeSettings.segmentLengthMeters
+    ) {
+      issues.push({
+        id: 'uturn-opening-position',
+        severity: 'warning',
+        ruleId: 'UTN-004',
+        message: 'The full U-turn opening must fit within the straight-road preview segment.',
       })
     }
   }

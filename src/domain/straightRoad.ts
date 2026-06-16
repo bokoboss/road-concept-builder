@@ -1,5 +1,15 @@
 export type MedianType = 'none' | 'painted' | 'raised'
 
+export type UTurnDirection = 'eastbound-to-westbound' | 'westbound-to-eastbound'
+
+export type UTurnParameters = {
+  enabled: boolean
+  direction: UTurnDirection
+  positionMeters: number
+  openingWidthMeters: number
+  showArrow: boolean
+}
+
 export type StraightRoadParameters = {
   eastboundLaneCount: number
   westboundLaneCount: number
@@ -8,6 +18,7 @@ export type StraightRoadParameters = {
   medianType: MedianType
   medianWidthMeters: number
   showLaneArrows: boolean
+  uTurn: UTurnParameters
 }
 
 export type Phase1DrawingSettings = {
@@ -58,6 +69,10 @@ export const phase1NumericLimits = {
   medianWidthMeters: { min: 0, max: 20 },
 } as const
 
+export const phase2UTurnNumericLimits = {
+  openingWidthMeters: { min: 2, max: 12 },
+} as const
+
 // Phase 1 uses eastbound/westbound names for this east-west diagram.
 // Future phases may generalize directions for other road alignments.
 export const defaultStraightRoadParameters: StraightRoadParameters = {
@@ -68,4 +83,11 @@ export const defaultStraightRoadParameters: StraightRoadParameters = {
   medianType: 'raised',
   medianWidthMeters: 2,
   showLaneArrows: true,
+  uTurn: {
+    enabled: false,
+    direction: 'eastbound-to-westbound',
+    positionMeters: 21,
+    openingWidthMeters: 6,
+    showArrow: true,
+  },
 }

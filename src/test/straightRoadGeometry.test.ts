@@ -217,4 +217,123 @@ describe('buildStraightRoadGeometry', () => {
   it('hides arrows when requested', () => {
     expect(geometry({ showLaneArrows: false }).arrows).toEqual([])
   })
+
+  it('keeps Phase 1 median rendering unchanged when U-turn is disabled', () => {
+    const result = geometry()
+
+    expect(result.medianOpening).toBeNull()
+    expect(result.uTurnArrow).toBeNull()
+    expect(result.medianSections).toEqual([result.median])
+    expect(result.medianEdgeLines).toHaveLength(2)
+  })
+
+  it('splits the median surface and edge lines around a valid opening', () => {
+    const result = geometry({
+      uTurn: {
+        ...defaultStraightRoadParameters.uTurn,
+        enabled: true,
+        positionMeters: 21,
+        openingWidthMeters: 6,
+      },
+    })
+
+    expect(result.medianOpening).toMatchObject({ x: 18, width: 6, y: 8.5, height: 2 })
+    expect(result.medianSections).toEqual([
+      expect.objectContaining({ id: 'median-before-opening', x: 0, width: 18 }),
+      expect.objectContaining({ id: 'median-after-opening', x: 24, width: 18 }),
+    ])
+    expect(result.medianEdgeLines).toEqual([
+      { x1: 0, y1: 8.5, x2: 18, y2: 8.5 },
+      { x1: 24, y1: 8.5, x2: 42, y2: 8.5 },
+      { x1: 0, y1: 10.5, x2: 18, y2: 10.5 },
+      { x1: 24, y1: 10.5, x2: 42, y2: 10.5 },
+    ])
+  })
+
+  it('places U-turn arrows from the correct Thailand median-side lane', () => {
+    const eastboundToWestbound = geometry({
+      uTurn: { ...defaultStraightRoadParameters.uTurn, enabled: true },
+    })
+    const westboundToEastbound = geometry({
+      uTurn: {
+        ...defaultStraightRoadParameters.uTurn,
+        enabled: true,
+        direction: 'westbound-to-eastbound',
+      },
+    })
+
+    expect(eastboundToWestbound.uTurnArrow).toMatchObject({
+      direction: 'eastbound-to-westbound',
+      sourceLaneId: 'eastbound-lane-2',
+      targetLaneId: 'westbound-lane-1',
+      y: 6.75,
+      targetY: 12.25,
+    })
+    expect(westboundToEastbound.uTurnArrow).toMatchObject({
+      direction: 'westbound-to-eastbound',
+      sourceLaneId: 'westbound-lane-1',
+      targetLaneId: 'eastbound-lane-2',
+      y: 12.25,
+      targetY: 6.75,
+    })
+  })
+
+  it('omits the optional U-turn arrow while keeping a valid opening', () => {
+    const result = geometry({
+      uTurn: {
+        ...defaultStraightRoadParameters.uTurn,
+        enabled: true,
+        showArrow: false,
+      },
+    })
+
+    expect(result.medianOpening).not.toBeNull()
+    expect(result.uTurnArrow).toBeNull()
+  })
+
+  it('renders only the base road when U-turn prerequisites are invalid', () => {
+    for (const overrides of [
+      { medianType: 'none' as const },
+      { medianType: 'painted' as const, medianWidthMeters: 0 },
+      { medianType: 'raised' as const, medianWidthMeters: Number.NaN },
+      { medianType: 'raised' as const, medianWidthMeters: Number.POSITIVE_INFINITY },
+      { westboundLaneCount: 0 },
+      { eastboundLaneCount: 0, westboundLaneCount: 0 },
+      {
+        uTurn: {
+          ...defaultStraightRoadParameters.uTurn,
+          enabled: true,
+          openingWidthMeters: 20,
+        },
+      },
+      {
+        uTurn: {
+          ...defaultStraightRoadParameters.uTurn,
+          enabled: true,
+          positionMeters: 1,
+        },
+      },
+    ]) {
+      const result = geometry({
+        uTurn: { ...defaultStraightRoadParameters.uTurn, enabled: true },
+        ...overrides,
+      })
+
+      expect(result.medianOpening).toBeNull()
+      expect(result.uTurnArrow).toBeNull()
+    }
+  })
+
+  it('still renders a valid U-turn on painted and raised medians', () => {
+    for (const medianType of ['painted', 'raised'] as const) {
+      const result = geometry({
+        medianType,
+        medianWidthMeters: 2,
+        uTurn: { ...defaultStraightRoadParameters.uTurn, enabled: true },
+      })
+
+      expect(result.medianOpening).not.toBeNull()
+      expect(result.uTurnArrow).not.toBeNull()
+    }
+  })
 })
