@@ -6,6 +6,7 @@ import {
 } from '../domain/straightRoad'
 import {
   buildStraightRoadGeometry,
+  type PolygonGeometry,
   type RectGeometry,
   type RoadOperationMode,
 } from '../geometry/straightRoadGeometry'
@@ -36,6 +37,27 @@ function RoadRect({
   )
 }
 
+function RoadPolygon({
+  polygon,
+  className,
+  roadTop,
+  px,
+}: {
+  polygon: PolygonGeometry
+  className: string
+  roadTop: number
+  px: (value: number) => number
+}) {
+  return (
+    <polygon
+      className={className}
+      points={polygon.points
+        .map((point) => `${ROAD_X + px(point.x)},${roadTop + px(point.y)}`)
+        .join(' ')}
+    />
+  )
+}
+
 function ThroughArrow({ x, y, rotate }: { x: number; y: number; rotate: number }) {
   return (
     <g transform={`translate(${x} ${y}) rotate(${rotate})`} className="road-arrow">
@@ -50,18 +72,20 @@ function UTurnArrow({
   y,
   targetY,
   direction,
+  testId = 'uturn-arrow',
 }: {
   x: number
   y: number
   targetY: number
   direction: 'eastbound-to-westbound' | 'westbound-to-eastbound'
+  testId?: string
 }) {
   const horizontalScale = direction === 'eastbound-to-westbound' ? 1 : -1
   const targetOffset = targetY - y
 
   return (
     <g
-      data-testid="uturn-arrow"
+      data-testid={testId}
       data-direction={direction}
       transform={`translate(${x} ${y}) scale(${horizontalScale} 1)`}
       className="uturn-arrow"
@@ -198,6 +222,32 @@ export function StraightRoadPreview({
               />
             </>
           )}
+          {geometry.uTurnPocket && (
+            <g data-testid="uturn-pocket" data-direction={geometry.uTurnPocket.direction}>
+              <RoadPolygon
+                polygon={geometry.uTurnPocket.taper}
+                className="uturn-pocket-surface"
+                roadTop={roadTop}
+                px={px}
+              />
+              <RoadRect
+                rect={geometry.uTurnPocket.storage}
+                className="uturn-pocket-surface"
+                roadTop={roadTop}
+                px={px}
+              />
+              {geometry.uTurnPocket.boundaryLines.map((line, index) => (
+                <line
+                  key={`uturn-pocket-boundary-${index}`}
+                  className="uturn-pocket-line"
+                  x1={ROAD_X + px(line.x1)}
+                  y1={toSvgY(line.y1)}
+                  x2={ROAD_X + px(line.x2)}
+                  y2={toSvgY(line.y2)}
+                />
+              ))}
+            </g>
+          )}
 
           {geometry.edgeLines.map((line, index) => (
             <line
@@ -253,6 +303,15 @@ export function StraightRoadPreview({
               y={toSvgY(geometry.uTurnArrow.y)}
               targetY={toSvgY(geometry.uTurnArrow.targetY)}
               direction={geometry.uTurnArrow.direction}
+            />
+          )}
+          {geometry.uTurnPocketArrow && (
+            <UTurnArrow
+              testId="uturn-pocket-arrow"
+              x={ROAD_X + px(geometry.uTurnPocketArrow.x)}
+              y={toSvgY(geometry.uTurnPocketArrow.y)}
+              targetY={toSvgY(geometry.uTurnPocketArrow.targetY)}
+              direction={geometry.uTurnPocketArrow.direction}
             />
           )}
 

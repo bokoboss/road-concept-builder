@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import validationRules from '../../docs/VALIDATION_RULES.md?raw'
 import {
   defaultStraightRoadParameters,
   phase1DrawingSettings,
@@ -193,5 +194,153 @@ describe('validateStraightRoad', () => {
     }).map((issue) => issue.ruleId)
 
     expect(ruleIds.filter((ruleId) => ruleId.startsWith('UTN-'))).toEqual([])
+  })
+
+  it('adds no U-turn pocket warnings when the pocket is disabled', () => {
+    const ruleIds = validate({
+      uTurn: { ...defaultStraightRoadParameters.uTurn, enabled: true },
+    }).map((issue) => issue.ruleId)
+
+    expect(ruleIds.filter((ruleId) => ruleId.startsWith('UTP-'))).toEqual([])
+  })
+
+  it('adds no U-turn pocket warnings for a valid pocket', () => {
+    const ruleIds = validate({
+      uTurn: {
+        ...defaultStraightRoadParameters.uTurn,
+        enabled: true,
+        pocket: { ...defaultStraightRoadParameters.uTurn.pocket, enabled: true },
+      },
+    }).map((issue) => issue.ruleId)
+
+    expect(ruleIds.filter((ruleId) => ruleId.startsWith('UTP-'))).toEqual([])
+  })
+
+  it('warns when a pocket is enabled without the main U-turn opening', () => {
+    expect(
+      validate({
+        uTurn: {
+          ...defaultStraightRoadParameters.uTurn,
+          enabled: false,
+          pocket: { ...defaultStraightRoadParameters.uTurn.pocket, enabled: true },
+        },
+      }),
+    ).toEqual(expect.arrayContaining([expect.objectContaining({ ruleId: 'UTP-001' })]))
+  })
+
+  it('warns when a pocket is not on a valid two-way road with a median', () => {
+    for (const overrides of [{ westboundLaneCount: 0 }, { eastboundLaneCount: 0 }]) {
+      expect(
+        validate({
+          ...overrides,
+          uTurn: {
+            ...defaultStraightRoadParameters.uTurn,
+            enabled: true,
+            pocket: { ...defaultStraightRoadParameters.uTurn.pocket, enabled: true },
+          },
+        }),
+      ).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ ruleId: 'UTP-002' }),
+          expect.objectContaining({ ruleId: 'UTP-004' }),
+        ]),
+      )
+    }
+
+    for (const overrides of [
+      { medianType: 'none' as const },
+      { medianType: 'raised' as const, medianWidthMeters: 0 },
+    ]) {
+      expect(
+        validate({
+          ...overrides,
+          uTurn: {
+            ...defaultStraightRoadParameters.uTurn,
+            enabled: true,
+            pocket: { ...defaultStraightRoadParameters.uTurn.pocket, enabled: true },
+          },
+        }),
+      ).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ ruleId: 'UTP-003' }),
+          expect.objectContaining({ ruleId: 'UTP-004' }),
+        ]),
+      )
+    }
+  })
+
+  it('warns for invalid U-turn pocket storage and taper lengths', () => {
+    expect(
+      validate({
+        uTurn: {
+          ...defaultStraightRoadParameters.uTurn,
+          enabled: true,
+          pocket: {
+            ...defaultStraightRoadParameters.uTurn.pocket,
+            enabled: true,
+            storageLengthMeters: 4.9,
+          },
+        },
+      }),
+    ).toEqual(expect.arrayContaining([expect.objectContaining({ ruleId: 'UTP-005' })]))
+
+    expect(
+      validate({
+        uTurn: {
+          ...defaultStraightRoadParameters.uTurn,
+          enabled: true,
+          pocket: {
+            ...defaultStraightRoadParameters.uTurn.pocket,
+            enabled: true,
+            taperLengthMeters: 4.9,
+          },
+        },
+      }),
+    ).toEqual(expect.arrayContaining([expect.objectContaining({ ruleId: 'UTP-006' })]))
+  })
+
+  it('warns when the full pocket does not fit upstream of the opening', () => {
+    expect(
+      validate({
+        uTurn: {
+          ...defaultStraightRoadParameters.uTurn,
+          enabled: true,
+          pocket: {
+            ...defaultStraightRoadParameters.uTurn.pocket,
+            enabled: true,
+            storageLengthMeters: 12,
+            taperLengthMeters: 10,
+          },
+        },
+      }),
+    ).toEqual(expect.arrayContaining([expect.objectContaining({ ruleId: 'UTP-007' })]))
+  })
+
+  it('adds an advisory issue when a pocket is enabled without a pocket arrow', () => {
+    expect(
+      validate({
+        uTurn: {
+          ...defaultStraightRoadParameters.uTurn,
+          enabled: true,
+          pocket: {
+            ...defaultStraightRoadParameters.uTurn.pocket,
+            enabled: true,
+            showArrow: false,
+          },
+        },
+      }),
+    ).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ severity: 'info', ruleId: 'MRK-003' }),
+      ]),
+    )
+  })
+
+  it('documents MRK-003 as a consistent advisory info issue', () => {
+    const severities = [...validationRules.matchAll(/\| `MRK-003` \| (\w+) \|/g)].map(
+      (match) => match[1],
+    )
+
+    expect(severities).toEqual(['info', 'info'])
   })
 })

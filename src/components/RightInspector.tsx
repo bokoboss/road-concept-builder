@@ -2,6 +2,7 @@ import type { ChangeEvent } from 'react'
 import {
   phase1DrawingSettings,
   phase1NumericLimits,
+  phase2BPocketNumericLimits,
   phase2UTurnNumericLimits,
   type MedianType,
   type StraightRoadParameters,
@@ -62,6 +63,17 @@ export function RightInspector({ parameters, issues, onChange }: RightInspectorP
     key: Key,
     value: StraightRoadParameters['uTurn'][Key],
   ) => onChange({ ...parameters, uTurn: { ...parameters.uTurn, [key]: value } })
+  const updateUTurnPocket = <Key extends keyof StraightRoadParameters['uTurn']['pocket']>(
+    key: Key,
+    value: StraightRoadParameters['uTurn']['pocket'][Key],
+  ) =>
+    onChange({
+      ...parameters,
+      uTurn: {
+        ...parameters.uTurn,
+        pocket: { ...parameters.uTurn.pocket, [key]: value },
+      },
+    })
 
   return (
     <aside className="right-panel">
@@ -198,6 +210,45 @@ export function RightInspector({ parameters, issues, onChange }: RightInspectorP
               onChange={(event) => updateUTurn('showArrow', event.target.checked)}
             />
           </label>
+          <div className="inspector-subgroup">
+            <h4>U-turn pocket</h4>
+            <label className="inspector-field checkbox-field">
+              <span>Enable U-turn pocket</span>
+              <input
+                type="checkbox"
+                checked={parameters.uTurn.pocket.enabled}
+                disabled={!parameters.uTurn.enabled}
+                onChange={(event) => updateUTurnPocket('enabled', event.target.checked)}
+              />
+            </label>
+            <NumberField
+              label="Storage length (m)"
+              value={parameters.uTurn.pocket.storageLengthMeters}
+              step={0.5}
+              min={phase2BPocketNumericLimits.storageLengthMeters.min}
+              max={phase2BPocketNumericLimits.storageLengthMeters.max}
+              disabled={!parameters.uTurn.enabled}
+              onChange={(value) => updateUTurnPocket('storageLengthMeters', value)}
+            />
+            <NumberField
+              label="Taper length (m)"
+              value={parameters.uTurn.pocket.taperLengthMeters}
+              step={0.5}
+              min={phase2BPocketNumericLimits.taperLengthMeters.min}
+              max={phase2BPocketNumericLimits.taperLengthMeters.max}
+              disabled={!parameters.uTurn.enabled}
+              onChange={(value) => updateUTurnPocket('taperLengthMeters', value)}
+            />
+            <label className="inspector-field checkbox-field">
+              <span>Show pocket arrow</span>
+              <input
+                type="checkbox"
+                checked={parameters.uTurn.pocket.showArrow}
+                disabled={!parameters.uTurn.enabled}
+                onChange={(event) => updateUTurnPocket('showArrow', event.target.checked)}
+              />
+            </label>
+          </div>
         </div>
       </section>
       <ValidationPanel issues={issues} />

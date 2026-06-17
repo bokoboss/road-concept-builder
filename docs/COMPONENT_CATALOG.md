@@ -219,6 +219,8 @@ Phase 2:
 Phase 2B:
 
 - U-turn pocket;
-- warning bars;
 - taper;
 - storage length.
+- pocket U-turn arrow.
+
+Warning bars remain deferred to a later pavement marking or polish phase.

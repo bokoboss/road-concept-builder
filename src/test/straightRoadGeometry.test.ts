@@ -22,6 +22,44 @@ function numericValues(value: unknown): number[] {
   return []
 }
 
+type Bounds = { x: number; y: number; width: number; height: number }
+
+function polygonBounds(points: Array<{ x: number; y: number }>): Bounds {
+  const xValues = points.map((point) => point.x)
+  const yValues = points.map((point) => point.y)
+  const minX = Math.min(...xValues)
+  const minY = Math.min(...yValues)
+
+  return {
+    x: minX,
+    y: minY,
+    width: Math.max(...xValues) - minX,
+    height: Math.max(...yValues) - minY,
+  }
+}
+
+function overlaps(a: Bounds, b: Bounds) {
+  return (
+    a.x < b.x + b.width &&
+    a.x + a.width > b.x &&
+    a.y < b.y + b.height &&
+    a.y + a.height > b.y
+  )
+}
+
+function expectPocketDoesNotOverlap(
+  pocket: NonNullable<ReturnType<typeof geometry>['uTurnPocket']>,
+  restrictedAreas: Bounds[],
+) {
+  const pocketSurfaces = [pocket.storage, polygonBounds(pocket.taper.points)]
+
+  for (const surface of pocketSurfaces) {
+    for (const restrictedArea of restrictedAreas) {
+      expect(overlaps(surface, restrictedArea)).toBe(false)
+    }
+  }
+}
+
 describe('buildStraightRoadGeometry', () => {
   it('calculates default two-way geometry in meters', () => {
     const result = geometry()
@@ -223,6 +261,8 @@ describe('buildStraightRoadGeometry', () => {
 
     expect(result.medianOpening).toBeNull()
     expect(result.uTurnArrow).toBeNull()
+    expect(result.uTurnPocket).toBeNull()
+    expect(result.uTurnPocketArrow).toBeNull()
     expect(result.medianSections).toEqual([result.median])
     expect(result.medianEdgeLines).toHaveLength(2)
   })
@@ -335,5 +375,198 @@ describe('buildStraightRoadGeometry', () => {
       expect(result.medianOpening).not.toBeNull()
       expect(result.uTurnArrow).not.toBeNull()
     }
+  })
+
+  it('does not add pocket geometry when the U-turn pocket is disabled', () => {
+    const result = geometry({
+      uTurn: { ...defaultStraightRoadParameters.uTurn, enabled: true },
+    })
+
+    expect(result.medianOpening).not.toBeNull()
+    expect(result.uTurnPocket).toBeNull()
+    expect(result.uTurnPocketArrow).toBeNull()
+  })
+
+  it('places an eastbound-to-westbound pocket upstream on the upper median-side approach', () => {
+    const result = geometry({
+      uTurn: {
+        ...defaultStraightRoadParameters.uTurn,
+        enabled: true,
+        pocket: { ...defaultStraightRoadParameters.uTurn.pocket, enabled: true },
+      },
+    })
+
+    expect(result.uTurnPocket).toMatchObject({
+      direction: 'eastbound-to-westbound',
+      sourceLaneId: 'eastbound-lane-2',
+      sourceLaneCenterY: 6.75,
+      storage: { x: 10, y: 5, width: 8, height: 3.5 },
+    })
+    expect(result.uTurnPocket?.taper.points).toEqual([
+      { x: 2, y: 8.5 },
+      { x: 10, y: 8.5 },
+      { x: 10, y: 5 },
+    ])
+    expect(result.uTurnPocketArrow).toMatchObject({
+      direction: 'eastbound-to-westbound',
+      x: 14,
+      y: 6.75,
+      targetY: 12.25,
+    })
+  })
+
+  it('keeps eastbound-to-westbound pocket surfaces out of median and westbound space', () => {
+    const result = geometry({
+      uTurn: {
+        ...defaultStraightRoadParameters.uTurn,
+        enabled: true,
+        pocket: { ...defaultStraightRoadParameters.uTurn.pocket, enabled: true },
+      },
+    })
+    const westboundCarriageway = result.carriageways.find(
+      (carriageway) => carriageway.id === 'westbound-carriageway',
+    )
+
+    expect(result.uTurnPocket).not.toBeNull()
+    expect(result.median).not.toBeNull()
+    expect(result.medianOpening).not.toBeNull()
+    expect(westboundCarriageway).toBeDefined()
+    expectPocketDoesNotOverlap(result.uTurnPocket!, [
+      result.median!,
+      result.medianOpening!,
+      westboundCarriageway!,
+    ])
+    expect(result.uTurnPocket!.storage.x + result.uTurnPocket!.storage.width).toBe(
+      result.medianOpening!.x,
+    )
+    expect(Math.max(...result.uTurnPocket!.taper.points.map((point) => point.x))).toBeLessThan(
+      result.medianOpening!.x,
+    )
+  })
+
+  it('places a westbound-to-eastbound pocket upstream on the lower median-side approach', () => {
+    const result = geometry({
+      uTurn: {
+        ...defaultStraightRoadParameters.uTurn,
+        enabled: true,
+        direction: 'westbound-to-eastbound',
+        pocket: { ...defaultStraightRoadParameters.uTurn.pocket, enabled: true },
+      },
+    })
+
+    expect(result.uTurnPocket).toMatchObject({
+      direction: 'westbound-to-eastbound',
+      sourceLaneId: 'westbound-lane-1',
+      sourceLaneCenterY: 12.25,
+      storage: { x: 24, y: 10.5, width: 8, height: 3.5 },
+    })
+    expect(result.uTurnPocket?.taper.points).toEqual([
+      { x: 40, y: 10.5 },
+      { x: 32, y: 10.5 },
+      { x: 32, y: 14 },
+    ])
+    expect(result.uTurnPocketArrow).toMatchObject({
+      direction: 'westbound-to-eastbound',
+      x: 28,
+      y: 12.25,
+      targetY: 6.75,
+    })
+  })
+
+  it('keeps westbound-to-eastbound pocket surfaces out of median and eastbound space', () => {
+    const result = geometry({
+      uTurn: {
+        ...defaultStraightRoadParameters.uTurn,
+        enabled: true,
+        direction: 'westbound-to-eastbound',
+        pocket: { ...defaultStraightRoadParameters.uTurn.pocket, enabled: true },
+      },
+    })
+    const eastboundCarriageway = result.carriageways.find(
+      (carriageway) => carriageway.id === 'eastbound-carriageway',
+    )
+
+    expect(result.uTurnPocket).not.toBeNull()
+    expect(result.median).not.toBeNull()
+    expect(result.medianOpening).not.toBeNull()
+    expect(eastboundCarriageway).toBeDefined()
+    expectPocketDoesNotOverlap(result.uTurnPocket!, [
+      result.median!,
+      result.medianOpening!,
+      eastboundCarriageway!,
+    ])
+    expect(result.uTurnPocket!.storage.x).toBe(
+      result.medianOpening!.x + result.medianOpening!.width,
+    )
+    expect(Math.min(...result.uTurnPocket!.taper.points.map((point) => point.x))).toBeGreaterThan(
+      result.medianOpening!.x + result.medianOpening!.width,
+    )
+  })
+
+  it('omits pocket geometry for invalid storage, taper, and upstream fit', () => {
+    for (const pocketOverrides of [
+      { storageLengthMeters: 4 },
+      { taperLengthMeters: 4 },
+      { storageLengthMeters: 12, taperLengthMeters: 10 },
+    ]) {
+      const result = geometry({
+        uTurn: {
+          ...defaultStraightRoadParameters.uTurn,
+          enabled: true,
+          pocket: {
+            ...defaultStraightRoadParameters.uTurn.pocket,
+            enabled: true,
+            ...pocketOverrides,
+          },
+        },
+      })
+
+      expect(result.uTurnPocket).toBeNull()
+      expect(result.uTurnPocketArrow).toBeNull()
+    }
+  })
+
+  it('omits pocket geometry when the base U-turn prerequisites are invalid', () => {
+    for (const overrides of [
+      { medianType: 'none' as const },
+      { westboundLaneCount: 0 },
+      { eastboundLaneCount: 0 },
+      {
+        uTurn: {
+          ...defaultStraightRoadParameters.uTurn,
+          enabled: false,
+          pocket: { ...defaultStraightRoadParameters.uTurn.pocket, enabled: true },
+        },
+      },
+    ]) {
+      const result = geometry({
+        uTurn: {
+          ...defaultStraightRoadParameters.uTurn,
+          enabled: true,
+          pocket: { ...defaultStraightRoadParameters.uTurn.pocket, enabled: true },
+        },
+        ...overrides,
+      })
+
+      expect(result.uTurnPocket).toBeNull()
+      expect(result.uTurnPocketArrow).toBeNull()
+    }
+  })
+
+  it('omits only the pocket arrow when requested', () => {
+    const result = geometry({
+      uTurn: {
+        ...defaultStraightRoadParameters.uTurn,
+        enabled: true,
+        pocket: {
+          ...defaultStraightRoadParameters.uTurn.pocket,
+          enabled: true,
+          showArrow: false,
+        },
+      },
+    })
+
+    expect(result.uTurnPocket).not.toBeNull()
+    expect(result.uTurnPocketArrow).toBeNull()
   })
 })

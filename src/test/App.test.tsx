@@ -133,11 +133,23 @@ describe('Phase 1 app shell', () => {
     expect(markup).toContain('Show U-turn arrow')
   })
 
+  it('exposes compact Phase 2B U-turn pocket controls', () => {
+    const markup = renderToStaticMarkup(<App />)
+
+    expect(markup).toContain('U-turn pocket')
+    expect(markup).toContain('Enable U-turn pocket')
+    expect(markup).toContain('Storage length (m)')
+    expect(markup).toContain('Taper length (m)')
+    expect(markup).toContain('Show pocket arrow')
+  })
+
   it('keeps Phase 1 SVG rendering unchanged when U-turn is disabled', () => {
     const markup = preview()
 
     expect(markup).not.toContain('data-testid="uturn-median-opening"')
     expect(markup).not.toContain('data-testid="uturn-arrow"')
+    expect(markup).not.toContain('data-testid="uturn-pocket"')
+    expect(markup).not.toContain('data-testid="uturn-pocket-arrow"')
     expect(markup).not.toContain('data-testid="uturn-opening-label"')
   })
 
@@ -183,6 +195,73 @@ describe('Phase 1 app shell', () => {
     expect(withoutArrow).not.toContain('data-testid="uturn-arrow"')
     expect(invalidOneWay).not.toContain('data-testid="uturn-median-opening"')
     expect(invalidOneWay).not.toContain('data-testid="uturn-arrow"')
+  })
+
+  it('renders a valid eastbound-to-westbound U-turn pocket and pocket arrow', () => {
+    const markup = preview({
+      uTurn: {
+        ...defaultStraightRoadParameters.uTurn,
+        enabled: true,
+        pocket: { ...defaultStraightRoadParameters.uTurn.pocket, enabled: true },
+      },
+    })
+
+    expect(markup).toContain('data-testid="uturn-pocket"')
+    expect(markup).toContain('data-direction="eastbound-to-westbound"')
+    expect(markup).toContain('data-testid="uturn-pocket-arrow"')
+    expect(markup).toContain('scale(1 1)')
+  })
+
+  it('renders a valid westbound-to-eastbound U-turn pocket and mirrored pocket arrow', () => {
+    const markup = preview({
+      uTurn: {
+        ...defaultStraightRoadParameters.uTurn,
+        enabled: true,
+        direction: 'westbound-to-eastbound',
+        pocket: { ...defaultStraightRoadParameters.uTurn.pocket, enabled: true },
+      },
+    })
+
+    expect(markup).toContain('data-testid="uturn-pocket"')
+    expect(markup).toContain('data-direction="westbound-to-eastbound"')
+    expect(markup).toContain('data-testid="uturn-pocket-arrow"')
+    expect(markup).toContain('scale(-1 1)')
+  })
+
+  it('omits invalid U-turn pocket geometry without removing a valid opening', () => {
+    const markup = preview({
+      uTurn: {
+        ...defaultStraightRoadParameters.uTurn,
+        enabled: true,
+        pocket: {
+          ...defaultStraightRoadParameters.uTurn.pocket,
+          enabled: true,
+          storageLengthMeters: 12,
+          taperLengthMeters: 10,
+        },
+      },
+    })
+
+    expect(markup).toContain('data-testid="uturn-median-opening"')
+    expect(markup).not.toContain('data-testid="uturn-pocket"')
+    expect(markup).not.toContain('data-testid="uturn-pocket-arrow"')
+  })
+
+  it('omits the optional pocket arrow while keeping valid pocket geometry', () => {
+    const markup = preview({
+      uTurn: {
+        ...defaultStraightRoadParameters.uTurn,
+        enabled: true,
+        pocket: {
+          ...defaultStraightRoadParameters.uTurn.pocket,
+          enabled: true,
+          showArrow: false,
+        },
+      },
+    })
+
+    expect(markup).toContain('data-testid="uturn-pocket"')
+    expect(markup).not.toContain('data-testid="uturn-pocket-arrow"')
   })
 
   it('does not render U-turn geometry when the physical median width is invalid', () => {

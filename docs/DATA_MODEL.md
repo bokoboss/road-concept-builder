@@ -148,11 +148,21 @@ type UturnOpening = {
   openingWidthMeters: number;
   direction: 'eastbound-to-westbound' | 'westbound-to-eastbound';
   showArrow: boolean;
-  configuration: 'median-opening-only';
+  pocket?: UturnPocket;
+  configuration: 'median-opening-only' | 'median-opening-with-pocket';
 };
 ```
 
-The current Phase 2 implementation stores one nested `UTurnParameters` object on the straight-road parameters. `positionMeters` is the opening center measured from the segment's left/west edge. U-turn pockets, storage lanes, tapers, warning bars, and signalized U-turns are deferred.
+```ts
+type UturnPocket = {
+  enabled: boolean;
+  storageLengthMeters: number;
+  taperLengthMeters: number;
+  showArrow: boolean;
+};
+```
+
+The current Phase 2B implementation stores one nested `UTurnParameters` object on the straight-road parameters, with a nested `UTurnPocketParameters` object for the optional pocket. `positionMeters` is the opening center measured from the segment's left/west edge. The Phase 2B pocket uses the main `laneWidthMeters` value as its pocket width; no separate pocket-width control is exposed. Warning bars, signalized U-turns, and a general auxiliary-lane framework are deferred.
 
 ## Intersection Node
 

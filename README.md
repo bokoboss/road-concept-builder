@@ -62,7 +62,7 @@ Do not add database, authentication, cloud sync, 3D, DXF/DWG export, AI prompt-t
 
 ## Current Implementation
 
-Phase 2 extends the parametric straight road segment generator with one basic U-turn / median-opening feature while preserving the Phase 0 three-panel shell.
+Phase 2B extends the parametric straight road segment generator with one basic U-turn pocket tied to the Phase 2A median opening while preserving the Phase 0 three-panel shell.
 
 Included:
 
@@ -82,6 +82,11 @@ Included:
 - optional feature-specific generated U-turn arrow;
 - split median surface and median edge lines around the opening;
 - non-blocking U-turn validation for road operation, median type, opening width, and position.
+- one optional U-turn-specific pocket lane tied to the median opening;
+- pocket storage length and taper length using the main lane width as a Phase 2B simplification;
+- Thailand left-hand-traffic pocket placement: eastbound pockets extend upstream to the left of the opening, westbound pockets extend upstream to the right;
+- optional pocket U-turn arrow;
+- non-blocking pocket validation for prerequisites, storage length, taper length, fit, and missing pocket arrow.
 
 Phase 1 uses eastbound/westbound naming because the current diagram is east-west oriented. Future phases may generalize direction naming for other alignments.
 
@@ -94,6 +99,8 @@ Phase 1 input safeguards limit each direction to integer lane counts from 0 to 8
 Drawing settings are also sanitized before geometry or SVG rendering. Invalid scale and segment-length values use safe defaults, and an internal absolute cap of 16 lanes per direction prevents unsafe callers from creating unbounded lane-generation loops. The Phase 1 straight-road SVG preview clamps its rendered segment extent to 500 m and bounds preview scale to keep SVG coordinates finite. This is only a preview/rendering safeguard: it is not a Thai standard, a road-design limit, or a future intersection limit. Future intersection modules should use their own preview extent settings, such as `approachLengthMeters`. Median width is ignored by rendering and validation when `medianType = none`.
 
 Phase 2 opening position is measured from the segment's left/west edge to the opening center. The full opening must fit within the preview segment. Invalid U-turn configurations keep rendering the base Phase 1 road and show non-blocking validation warnings.
+
+Phase 2B pocket storage and taper must fit upstream of the selected median opening. Invalid pocket configurations keep rendering the Phase 2A base road/opening and omit pocket geometry so the preview does not show a misleading pocket. The pocket uses the current lane width; no separate pocket-width control is exposed in this phase.
 
 SVG export remains clearly disabled and is not implemented in this phase.
 
@@ -116,4 +123,4 @@ The development server prints its local URL after `npm run dev`.
 
 ## Phase Boundary
 
-The current implementation is limited to the Phase 2 straight-road median opening and optional U-turn arrow. It does not include U-turn pockets, storage lanes, tapers, warning bars, signalized U-turns, intersections, slip lanes, roundabouts, real pavement-marking placement, drag-and-drop, persistence, authentication, AI prompt-to-diagram, real SVG export, or CAD export.
+The current implementation is limited to the Phase 2B straight-road median opening, optional U-turn arrow, and U-turn-specific pocket lane with storage and taper. It does not include warning bars, signalized U-turns, intersections, slip lanes, roundabouts, a general auxiliary-lane framework, real pavement-marking placement, drag-and-drop, persistence, authentication, AI prompt-to-diagram, real SVG export, or CAD export.

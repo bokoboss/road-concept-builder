@@ -1,5 +1,6 @@
 import {
   phase1NumericLimits,
+  phase2BPocketNumericLimits,
   phase2UTurnNumericLimits,
   sanitizePhase1DrawingSettings,
   type Phase1DrawingSettings,
@@ -15,6 +16,18 @@ export type ValidationIssue = {
 
 function validRange(value: number, min: number, max: number) {
   return Number.isFinite(value) && value >= min && value <= max
+}
+
+function hasValidPhysicalMedian(parameters: StraightRoadParameters) {
+  return (
+    parameters.medianType !== 'none' &&
+    validRange(
+      parameters.medianWidthMeters,
+      phase1NumericLimits.medianWidthMeters.min,
+      phase1NumericLimits.medianWidthMeters.max,
+    ) &&
+    parameters.medianWidthMeters > 0
+  )
 }
 
 function laneCountIssue(
@@ -181,6 +194,128 @@ export function validateStraightRoad(
         severity: 'warning',
         ruleId: 'UTN-004',
         message: 'The full U-turn opening must fit within the straight-road preview segment.',
+      })
+    }
+  }
+
+  if (parameters.uTurn.pocket.enabled) {
+    const eastboundHasLane =
+      Number.isFinite(parameters.eastboundLaneCount) &&
+      Math.floor(parameters.eastboundLaneCount) >= 1
+    const westboundHasLane =
+      Number.isFinite(parameters.westboundLaneCount) &&
+      Math.floor(parameters.westboundLaneCount) >= 1
+    const openingStart =
+      parameters.uTurn.positionMeters - parameters.uTurn.openingWidthMeters / 2
+    const openingEnd =
+      parameters.uTurn.positionMeters + parameters.uTurn.openingWidthMeters / 2
+    const hasValidOpening =
+      parameters.uTurn.enabled &&
+      eastboundHasLane &&
+      westboundHasLane &&
+      hasValidPhysicalMedian(parameters) &&
+      validRange(
+        parameters.uTurn.openingWidthMeters,
+        phase2UTurnNumericLimits.openingWidthMeters.min,
+        phase2UTurnNumericLimits.openingWidthMeters.max,
+      ) &&
+      Number.isFinite(parameters.uTurn.positionMeters) &&
+      Number.isFinite(openingStart) &&
+      Number.isFinite(openingEnd) &&
+      openingStart >= 0 &&
+      openingEnd <= safeSettings.segmentLengthMeters
+
+    if (!parameters.uTurn.enabled) {
+      issues.push({
+        id: 'uturn-pocket-requires-opening-enabled',
+        severity: 'warning',
+        ruleId: 'UTP-001',
+        message: 'U-turn pocket requires the U-turn opening to be enabled.',
+      })
+    }
+
+    if (!eastboundHasLane || !westboundHasLane) {
+      issues.push({
+        id: 'uturn-pocket-requires-two-way',
+        severity: 'warning',
+        ruleId: 'UTP-002',
+        message: 'U-turn pocket requires two-way operation with lanes in both directions.',
+      })
+    }
+
+    if (!hasValidPhysicalMedian(parameters)) {
+      issues.push({
+        id: 'uturn-pocket-requires-median',
+        severity: 'warning',
+        ruleId: 'UTP-003',
+        message: 'U-turn pocket requires a painted or raised median with positive width.',
+      })
+    }
+
+    if (!hasValidOpening) {
+      issues.push({
+        id: 'uturn-pocket-requires-valid-opening',
+        severity: 'warning',
+        ruleId: 'UTP-004',
+        message: 'U-turn pocket requires valid Phase 2 median-opening geometry.',
+      })
+    }
+
+    const hasValidStorageLength = validRange(
+      parameters.uTurn.pocket.storageLengthMeters,
+      phase2BPocketNumericLimits.storageLengthMeters.min,
+      phase2BPocketNumericLimits.storageLengthMeters.max,
+    )
+    if (!hasValidStorageLength) {
+      issues.push({
+        id: 'uturn-pocket-storage-length',
+        severity: 'warning',
+        ruleId: 'UTP-005',
+        message: 'U-turn pocket storage length must be finite and between 5 and 100 m.',
+      })
+    }
+
+    const hasValidTaperLength = validRange(
+      parameters.uTurn.pocket.taperLengthMeters,
+      phase2BPocketNumericLimits.taperLengthMeters.min,
+      phase2BPocketNumericLimits.taperLengthMeters.max,
+    )
+    if (!hasValidTaperLength) {
+      issues.push({
+        id: 'uturn-pocket-taper-length',
+        severity: 'warning',
+        ruleId: 'UTP-006',
+        message: 'U-turn pocket taper length must be finite and between 5 and 80 m.',
+      })
+    }
+
+    const totalPocketLength =
+      parameters.uTurn.pocket.storageLengthMeters + parameters.uTurn.pocket.taperLengthMeters
+    const fitsUpstream =
+      parameters.uTurn.direction === 'eastbound-to-westbound'
+        ? openingStart - totalPocketLength >= 0
+        : openingEnd + totalPocketLength <= safeSettings.segmentLengthMeters
+
+    if (
+      hasValidOpening &&
+      hasValidStorageLength &&
+      hasValidTaperLength &&
+      (!Number.isFinite(totalPocketLength) || !fitsUpstream)
+    ) {
+      issues.push({
+        id: 'uturn-pocket-fit',
+        severity: 'warning',
+        ruleId: 'UTP-007',
+        message: 'The full U-turn pocket storage and taper must fit upstream of the opening.',
+      })
+    }
+
+    if (!parameters.uTurn.pocket.showArrow) {
+      issues.push({
+        id: 'uturn-pocket-arrow',
+        severity: 'info',
+        ruleId: 'MRK-003',
+        message: 'U-turn pocket is enabled without a pocket U-turn arrow.',
       })
     }
   }

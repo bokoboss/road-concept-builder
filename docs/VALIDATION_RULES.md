@@ -64,6 +64,21 @@ The Phase 1 numeric ranges are practical safeguards for stable concept preview r
 
 The Phase 2 opening-width range is a practical preview safeguard and project assumption, not a formal Thai-standard limit. Invalid U-turn configurations keep the base straight-road preview and do not render partial U-turn geometry.
 
+## U-turn Pocket Rules
+
+| Rule ID | Severity | Rule |
+|---|---:|---|
+| `UTP-001` | warning | Enabled Phase 2B U-turn pocket requires the U-turn opening to be enabled. |
+| `UTP-002` | warning | Enabled Phase 2B U-turn pocket requires two-way operation with lanes in both directions. |
+| `UTP-003` | warning | Enabled Phase 2B U-turn pocket requires a painted or raised median with positive width. |
+| `UTP-004` | warning | Enabled Phase 2B U-turn pocket requires valid Phase 2 median-opening geometry. |
+| `UTP-005` | warning | Pocket storage length must be finite and between 5 and 100 m. |
+| `UTP-006` | warning | Pocket taper length must be finite and between 5 and 80 m. |
+| `UTP-007` | warning | The full pocket storage and taper must fit upstream of the median opening within the straight-road preview segment. |
+| `MRK-003` | info | Enabled U-turn pocket without a pocket U-turn arrow is treated as an advisory completeness issue. |
+
+The Phase 2B storage and taper ranges are practical preview safeguards and project assumptions, not formal Thai-standard limits. Invalid pocket configurations keep rendering the Phase 2A base road/opening and omit pocket geometry.
+
 ## Intersection Rules
 
 | Rule ID | Severity | Rule |
@@ -99,7 +114,7 @@ The Phase 2 opening-width range is a practical preview safeguard and project ass
 |---|---:|---|
 | `MRK-001` | error | Marking target must exist. |
 | `MRK-002` | warning | Lane-use arrow should match lane movement. |
-| `MRK-003` | warning | U-turn pocket should include U-turn arrow. |
+| `MRK-003` | info | U-turn pocket should include U-turn arrow as an advisory completeness note. |
 | `MRK-004` | warning | Stop line should not overlap crosswalk. |
 | `MRK-005` | warning | Crosswalk should not conflict with island geometry. |
 | `MRK-006` | info | Transverse warning bars use project assumption unless verified. |

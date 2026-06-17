@@ -104,6 +104,20 @@ Median-opening-only U-turn geometry:
 
 Phase 2 invalid U-turn configurations render the base Phase 1 road without partial U-turn geometry. U-turn pockets, tapers, storage lanes, and warning bars are deferred to Phase 2B.
 
+### Phase 2B
+
+U-turn-specific pocket geometry:
+
+- one optional pocket lane tied to the Phase 2 median opening;
+- storage length and taper length in meters;
+- pocket width uses the main road lane width as a Phase 2B simplification;
+- eastbound-to-westbound pockets extend upstream to the left of the opening;
+- westbound-to-eastbound pockets extend upstream to the right of the opening;
+- the full storage+taper length must fit upstream of the opening inside the straight-road preview segment;
+- invalid pocket configurations render the Phase 2A base road/opening without pocket geometry.
+
+The Phase 2B pocket length ranges and fit behavior are preview safeguards and project assumptions, not Thai-standard design checks. Warning bars are deferred to a later marking or polish phase.
+
 ### Phase 3
 
 Intersection geometry:

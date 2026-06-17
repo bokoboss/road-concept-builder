@@ -1,6 +1,7 @@
 import {
   defaultStraightRoadParameters,
   phase1NumericLimits,
+  phase2BPocketNumericLimits,
   phase2UTurnNumericLimits,
   sanitizePhase1DrawingSettings,
   type Phase1DrawingSettings,
@@ -24,6 +25,11 @@ export type LineGeometry = {
   y1: number
   x2: number
   y2: number
+}
+
+export type PolygonGeometry = {
+  id: string
+  points: Array<{ x: number; y: number }>
 }
 
 export type LanePositionLabel =
@@ -64,6 +70,24 @@ export type UTurnArrowGeometry = {
   targetY: number
 }
 
+export type UTurnPocketGeometry = {
+  id: string
+  direction: UTurnDirection
+  sourceLaneId: string
+  sourceLaneCenterY: number
+  storage: RectGeometry
+  taper: PolygonGeometry
+  boundaryLines: LineGeometry[]
+}
+
+export type UTurnPocketArrowGeometry = {
+  id: string
+  direction: UTurnDirection
+  x: number
+  y: number
+  targetY: number
+}
+
 export type StraightRoadGeometry = {
   operationMode: RoadOperationMode
   lengthMeters: number
@@ -80,6 +104,8 @@ export type StraightRoadGeometry = {
   directionSeparationLine: LineGeometry | null
   arrows: ArrowGeometry[]
   uTurnArrow: UTurnArrowGeometry | null
+  uTurnPocket: UTurnPocketGeometry | null
+  uTurnPocketArrow: UTurnPocketArrowGeometry | null
 }
 
 function clamp(value: number, min: number, max: number) {
@@ -104,6 +130,10 @@ function hasUsablePhysicalMedianForUTurn(parameters: StraightRoadParameters) {
     parameters.medianWidthMeters >= phase1NumericLimits.medianWidthMeters.min &&
     parameters.medianWidthMeters <= phase1NumericLimits.medianWidthMeters.max
   )
+}
+
+function validRange(value: number, min: number, max: number) {
+  return Number.isFinite(value) && value >= min && value <= max
 }
 
 function deriveOperationMode(
@@ -388,8 +418,101 @@ export function buildStraightRoadGeometry(
           x: openingPosition,
           y: sourceLane.centerY,
           targetY: targetLane.centerY,
-        }
+      }
       : null
+  const pocket = parameters.uTurn.pocket
+  const storageLength = pocket.storageLengthMeters
+  const taperLength = pocket.taperLengthMeters
+  const totalPocketLength = storageLength + taperLength
+  const hasValidPocket =
+    hasValidUTurn &&
+    pocket.enabled &&
+    sourceLane !== undefined &&
+    targetLane !== undefined &&
+    validRange(
+      storageLength,
+      phase2BPocketNumericLimits.storageLengthMeters.min,
+      phase2BPocketNumericLimits.storageLengthMeters.max,
+    ) &&
+    validRange(
+      taperLength,
+      phase2BPocketNumericLimits.taperLengthMeters.min,
+      phase2BPocketNumericLimits.taperLengthMeters.max,
+    ) &&
+    Number.isFinite(totalPocketLength) &&
+    (parameters.uTurn.direction === 'eastbound-to-westbound'
+      ? openingStart - totalPocketLength >= 0
+      : openingEnd + totalPocketLength <= lengthMeters)
+
+  let uTurnPocket: UTurnPocketGeometry | null = null
+  let uTurnPocketArrow: UTurnPocketArrowGeometry | null = null
+
+  if (hasValidPocket && sourceLane && targetLane) {
+    const isEastboundPocket = parameters.uTurn.direction === 'eastbound-to-westbound'
+    const pocketY = sourceLane.y
+    const storageX = isEastboundPocket ? openingStart - storageLength : openingEnd
+    const pocketOuterY = isEastboundPocket ? pocketY : pocketY + sourceLane.height
+    const laneJoinY = isEastboundPocket ? sourceLane.y + sourceLane.height : sourceLane.y
+    const storageEndX = isEastboundPocket ? openingStart : openingEnd + storageLength
+    const storageStartX = isEastboundPocket ? openingStart - storageLength : openingEnd
+    const taperJoinX = isEastboundPocket
+      ? openingStart - storageLength
+      : openingEnd + storageLength
+    const taperFarX = isEastboundPocket
+      ? openingStart - storageLength - taperLength
+      : openingEnd + storageLength + taperLength
+
+    uTurnPocket = {
+      id: 'uturn-pocket',
+      direction: parameters.uTurn.direction,
+      sourceLaneId: sourceLane.id,
+      sourceLaneCenterY: sourceLane.centerY,
+      storage: {
+        id: 'uturn-pocket-storage',
+        x: storageX,
+        y: pocketY,
+        width: storageLength,
+        height: sourceLane.height,
+      },
+      taper: {
+        id: 'uturn-pocket-taper',
+        points: isEastboundPocket
+          ? [
+              { x: taperFarX, y: laneJoinY },
+              { x: taperJoinX, y: laneJoinY },
+              { x: taperJoinX, y: pocketOuterY },
+            ]
+          : [
+              { x: taperFarX, y: laneJoinY },
+              { x: taperJoinX, y: laneJoinY },
+              { x: taperJoinX, y: pocketOuterY },
+            ],
+      },
+      boundaryLines: isEastboundPocket
+        ? [
+            { x1: taperFarX, y1: laneJoinY, x2: taperJoinX, y2: pocketOuterY },
+            { x1: taperJoinX, y1: pocketOuterY, x2: storageEndX, y2: pocketOuterY },
+            { x1: storageStartX, y1: laneJoinY, x2: storageEndX, y2: laneJoinY },
+          ]
+        : [
+            { x1: taperFarX, y1: laneJoinY, x2: taperJoinX, y2: pocketOuterY },
+            { x1: taperJoinX, y1: pocketOuterY, x2: storageStartX, y2: pocketOuterY },
+            { x1: storageStartX, y1: laneJoinY, x2: storageEndX, y2: laneJoinY },
+          ],
+    }
+
+    if (pocket.showArrow) {
+      uTurnPocketArrow = {
+        id: 'uturn-pocket-arrow',
+        direction: parameters.uTurn.direction,
+        x: isEastboundPocket
+          ? openingStart - storageLength / 2
+          : openingEnd + storageLength / 2,
+        y: pocketY + sourceLane.height / 2,
+        targetY: targetLane.centerY,
+      }
+    }
+  }
 
   return {
     operationMode,
@@ -410,5 +533,7 @@ export function buildStraightRoadGeometry(
         : null,
     arrows,
     uTurnArrow,
+    uTurnPocket,
+    uTurnPocketArrow,
   }
 }

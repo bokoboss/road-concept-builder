@@ -101,13 +101,26 @@ Support common Thai road concept cases involving median openings and U-turns.
 
 ## Phase 2B - U-turn Pocket and Approach Treatments
 
-Deferred until the median-opening-only Phase 2 is reviewed:
+### Goal
+
+Add one basic U-turn-specific pocket lane tied to the existing Phase 2 median opening.
+
+### Scope
 
 - U-turn pocket lane;
 - storage length;
 - taper length;
-- optional warning bars;
-- pocket-arrow completeness validation.
+- optional pocket U-turn arrow;
+- pocket-arrow completeness validation;
+- non-blocking validation for U-turn opening prerequisites, median prerequisites, storage length, taper length, and upstream fit.
+
+### Exit Criteria
+
+- user can enable one U-turn pocket only when a Phase 2 median opening exists;
+- eastbound-to-westbound pockets use the upper eastbound median-side approach and extend upstream to the left of the opening;
+- westbound-to-eastbound pockets use the lower westbound median-side approach and extend upstream to the right of the opening;
+- invalid pocket configurations keep rendering the Phase 2 base road/opening and omit misleading pocket geometry;
+- no warning-bar system, general auxiliary-lane framework, intersections, slip lanes, or signalized U-turns are introduced.
 
 ## Phase 3 - Basic Intersection
 
