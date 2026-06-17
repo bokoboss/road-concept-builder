@@ -180,6 +180,20 @@ These markings:
 
 Manual placement is deliberately limited to one schematic through-arrow object with `CUSTOM_CONCEPT` source status. Full marking libraries, target-aware stop lines, warning bars, save/load, export, and CAD-style editing remain later work.
 
+### Phase 2E Practical Editor Workflow
+
+Phase 2E keeps the same limited marking object set but adds workflow actions needed for report diagrams:
+
+- delete selected marking object;
+- duplicate selected manual through-arrow object;
+- lock/unlock and show/hide the selected object;
+- bring forward and send backward with `zIndex`;
+- select objects from a compact inspector list;
+- save/load the local `ProjectDocument` as JSON;
+- export the current SVG drawing.
+
+PNG export, warning bars, target-aware stop lines, text markings, and a full marking library remain later work.
+
 ### Lane Arrow
 
 When the user selects a lane and adds a lane arrow:
@@ -332,6 +346,8 @@ For a selected marking, show only relevant fields.
 Phase 2C exposes only the controls needed for generated arrow markings: selected marking, visible, X nudge, Y nudge, and scale.
 
 Phase 2D exposes the selected canvas object's source, source status, visible, locked, X/Y position, rotation, scale, and z-index. Locked objects remain selectable but cannot be dragged or position-edited until unlocked.
+
+Phase 2E adds selected-object action buttons and a compact object list. Generated road geometry remains parameter-driven and is not draggable.
 
 ### Stop Line Inspector
 

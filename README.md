@@ -62,7 +62,7 @@ Do not add database, authentication, cloud sync, 3D, DXF/DWG export, AI prompt-t
 
 ## Current Implementation
 
-Phase 2D extends the parametric straight road segment generator with a minimal object-based canvas/document model while preserving the Phase 0 three-panel shell and the existing road geometry engine.
+Phase 2E extends the parametric straight road segment generator with practical local editor workflow controls while preserving the Phase 0 three-panel shell and the existing road geometry engine.
 
 Included:
 
@@ -93,6 +93,11 @@ Included:
 - the left marking palette can place one manual through-arrow object with `CUSTOM_CONCEPT` source status;
 - visible marking objects can be selected and dragged directly on the SVG canvas;
 - the inspector can edit the selected object's visibility, lock state, position, rotation, scale, and z-index without changing road geometry or validation.
+- selected marking objects can be deleted, locked/unlocked, shown/hidden, brought forward, and sent backward;
+- selected manual marking objects can be duplicated;
+- the inspector includes a compact object list for selecting visible or hidden marking objects;
+- current `ProjectDocument` state can be downloaded as JSON and loaded back from a local JSON file with basic sanitization;
+- current SVG drawing can be exported as a standalone SVG file that respects the active view options.
 
 Phase 1 uses eastbound/westbound naming because the current diagram is east-west oriented. Future phases may generalize direction naming for other alignments.
 
@@ -108,9 +113,7 @@ Phase 2 opening position is measured from the segment's left/west edge to the op
 
 Phase 2B pocket storage and taper must fit upstream of the selected median opening. Invalid pocket configurations keep rendering the Phase 2A base road/opening and omit pocket geometry so the preview does not show a misleading pocket. The pocket uses the current lane width; no separate pocket-width control is exposed in this phase.
 
-Phase 2D establishes object-based editing for marking objects only. The road, lanes, median, U-turn opening, and U-turn pocket remain parametric. Arrow symbols remain schematic/report-oriented; exact Thai-standard symbol geometry, a full marking library, warning bars, save/load, and real export are deferred.
-
-SVG export remains clearly disabled and is not implemented in this phase.
+Phase 2E keeps object-based editing limited to marking objects only. The road, lanes, median, U-turn opening, and U-turn pocket remain parametric. Arrow symbols remain schematic/report-oriented; exact Thai-standard symbol geometry, a full marking library, warning bars, PNG export, and CAD export are deferred.
 
 ## Development Commands
 
@@ -131,4 +134,4 @@ The development server prints its local URL after `npm run dev`.
 
 ## Phase Boundary
 
-The current implementation is limited to the Phase 2D straight-road median opening, optional U-turn-specific pocket lane with storage and taper, drawing label visibility controls, selectable/draggable marking objects, and one manual through-arrow placement action. It does not include draggable lanes/median geometry, warning bars, signalized U-turns, intersections, slip lanes, roundabouts, a general auxiliary-lane framework, a full pavement-marking library, persistence, authentication, AI prompt-to-diagram, real SVG export, or CAD export.
+The current implementation is limited to the Phase 2E straight-road median opening, optional U-turn-specific pocket lane with storage and taper, drawing label visibility controls, selectable/draggable marking objects, one manual through-arrow placement action, local JSON save/load, and SVG export. It does not include draggable lanes/median geometry, warning bars, signalized U-turns, intersections, slip lanes, roundabouts, a general auxiliary-lane framework, a full pavement-marking library, PNG export, authentication, AI prompt-to-diagram, or CAD export.

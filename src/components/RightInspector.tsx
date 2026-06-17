@@ -10,6 +10,9 @@ import {
   type UTurnDirection,
 } from '../domain/straightRoad'
 import {
+  deleteSelectedCanvasObject,
+  duplicateSelectedManualObject,
+  moveSelectedCanvasObjectZ,
   selectCanvasObject,
   syncGeneratedCanvasObjects,
   updateCanvasObject,
@@ -80,6 +83,9 @@ export function RightInspector({
   const parameters = document.parametricRoad
   const viewOptions = document.viewOptions
   const markingObjects = document.canvasObjects.filter((object) => object.layer === 'marking')
+  const orderedMarkingObjects = [...markingObjects].sort(
+    (left, right) => right.zIndex - left.zIndex,
+  )
   const selectedObject =
     markingObjects.find((object) => object.id === document.selectedObjectId) ?? null
 
@@ -264,6 +270,52 @@ export function RightInspector({
           </label>
           {selectedObject && (
             <div className="inspector-subgroup">
+              <h4>Object controls</h4>
+              <div className="object-actions">
+                <button
+                  type="button"
+                  onClick={() => updateObject(selectedObject.id, { locked: !selectedObject.locked })}
+                >
+                  {selectedObject.locked ? 'Unlock' : 'Lock'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    updateObject(selectedObject.id, { visible: !selectedObject.visible })
+                  }
+                >
+                  {selectedObject.visible ? 'Hide' : 'Show'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    onDocumentChange(moveSelectedCanvasObjectZ(document, 'forward'))
+                  }
+                >
+                  Forward
+                </button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    onDocumentChange(moveSelectedCanvasObjectZ(document, 'backward'))
+                  }
+                >
+                  Backward
+                </button>
+                <button
+                  type="button"
+                  disabled={selectedObject.source !== 'manual'}
+                  onClick={() => onDocumentChange(duplicateSelectedManualObject(document))}
+                >
+                  Duplicate
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onDocumentChange(deleteSelectedCanvasObject(document))}
+                >
+                  Delete
+                </button>
+              </div>
               <h4>Marking position</h4>
               <div className="inspector-row">
                 <span>Source</span>
@@ -332,6 +384,27 @@ export function RightInspector({
               />
             </div>
           )}
+          <div className="inspector-subgroup">
+            <h4>Object list</h4>
+            <div className="object-list">
+              {orderedMarkingObjects.map((object) => (
+                <button
+                  key={object.id}
+                  type="button"
+                  className={`object-list-item${
+                    object.id === document.selectedObjectId ? ' is-selected' : ''
+                  }`}
+                  onClick={() => onDocumentChange(selectCanvasObject(document, object.id))}
+                >
+                  <span>{markingLabel(object)}</span>
+                  <small>
+                    z{object.zIndex} {object.visible ? 'visible' : 'hidden'}{' '}
+                    {object.locked ? 'locked' : 'editable'}
+                  </small>
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
 
         <div className="inspector-group">

@@ -144,6 +144,8 @@ Phase 2C keeps marking adjustment deliberately simple: generated arrow markings 
 
 Phase 2D adds object-based editing for pavement markings only: generated and manual marking objects can be selected on the SVG canvas, dragged when unlocked, hidden, locked, and edited in the inspector. Lanes, medians, U-turn openings, and pockets remain parameter-driven and are not draggable canvas objects.
 
+Phase 2E makes that object workflow practical for report cleanup: the inspector provides selected-object actions for delete, duplicate manual object, lock/unlock, show/hide, and one-step z-order changes, plus a compact object list. Save/load stays local JSON only. SVG export is available from the top bar; PNG remains a later export step.
+
 ## Validation UX
 
 Validation must guide rather than interrupt.

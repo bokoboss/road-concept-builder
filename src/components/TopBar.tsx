@@ -1,3 +1,5 @@
+import { type ChangeEvent, useRef } from 'react'
+
 function BrandMark() {
   return (
     <svg viewBox="0 0 32 32" aria-hidden="true">
@@ -8,7 +10,26 @@ function BrandMark() {
   )
 }
 
-export function TopBar({ issueCount }: { issueCount: number }) {
+export function TopBar({
+  issueCount,
+  onSaveProjectJson,
+  onLoadProjectJson,
+  onExportSvg,
+}: {
+  issueCount: number
+  onSaveProjectJson?: () => void
+  onLoadProjectJson?: (json: string) => void
+  onExportSvg?: () => void
+}) {
+  const fileInputRef = useRef<HTMLInputElement | null>(null)
+  const handleFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    onLoadProjectJson?.(await file.text())
+    event.target.value = ''
+  }
+
   return (
     <header className="top-bar">
       <div className="brand">
@@ -30,12 +51,25 @@ export function TopBar({ issueCount }: { issueCount: number }) {
             Redo
           </button>
         </div>
+        <button type="button" onClick={onSaveProjectJson}>
+          Save JSON
+        </button>
+        <button type="button" onClick={() => fileInputRef.current?.click()}>
+          Load JSON
+        </button>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="application/json,.json"
+          hidden
+          onChange={handleFileChange}
+        />
         <button type="button" className="validate-button" disabled>
           Validate
           <span className="button-count">{issueCount}</span>
         </button>
-        <button type="button" className="primary-button" disabled title="Not implemented in Phase 1">
-          Export SVG - Later
+        <button type="button" className="primary-button" onClick={onExportSvg}>
+          Export SVG
         </button>
       </div>
     </header>

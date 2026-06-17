@@ -106,6 +106,19 @@ button {
   font-weight: 650;
 }
 
+.top-actions button:not(:disabled) {
+  cursor: pointer;
+}
+
+.top-actions button:not(:disabled):hover {
+  border-color: #b9d6e7;
+  background: #f7fbfd;
+}
+
+.top-actions .primary-button:not(:disabled):hover {
+  background: #1d618b;
+}
+
 .top-actions button:disabled {
   cursor: default;
   opacity: 1;
@@ -595,6 +608,59 @@ button.palette-item:hover {
   color: #344851;
   font-size: 10px;
   font-weight: 650;
+}
+
+.object-actions {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 5px;
+  margin-bottom: 10px;
+}
+
+.object-actions button,
+.object-list-item {
+  min-height: 29px;
+  border: 1px solid #d6e0e4;
+  border-radius: 6px;
+  color: #344851;
+  background: #fff;
+  font: inherit;
+  font-size: 10px;
+  font-weight: 650;
+}
+
+.object-actions button:not(:disabled),
+.object-list-item {
+  cursor: pointer;
+}
+
+.object-actions button:disabled {
+  color: #8c9aa1;
+  background: #f1f4f5;
+}
+
+.object-list {
+  display: grid;
+  gap: 5px;
+}
+
+.object-list-item {
+  display: grid;
+  width: 100%;
+  min-height: 42px;
+  padding: 6px 8px;
+  text-align: left;
+}
+
+.object-list-item.is-selected {
+  border-color: #9bc5dc;
+  background: var(--accent-soft);
+}
+
+.object-list-item small {
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 600;
 }
 
 .inspector-field {

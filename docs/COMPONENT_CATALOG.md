@@ -238,4 +238,12 @@ Phase 2D:
 - selected marking visibility, lock, position, rotation, scale, and z-index controls;
 - SVG drag movement for visible, unlocked marking objects.
 
+Phase 2E:
+
+- selected-object delete, lock/unlock, show/hide, and z-order actions;
+- duplicate action for manual marking objects;
+- compact object list for selecting marking objects;
+- local ProjectDocument JSON download/load;
+- SVG export of the current drawing.
+
 Warning bars remain deferred to a later pavement marking or polish phase.

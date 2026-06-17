@@ -8,26 +8,45 @@ import {
 } from '../domain/straightRoad'
 import {
   createDefaultProjectDocument,
+  parseProjectDocumentJson,
   placeManualMarking,
   selectCanvasObject,
+  serializeProjectDocument,
   updateCanvasObjectPosition,
 } from '../domain/projectDocument'
+import { downloadTextFile, serializeSvgElement } from '../export/projectExport'
 import { validateStraightRoad } from '../validation/validateStraightRoad'
 
 export function App() {
-  const [document, setDocument] = useState(createDefaultProjectDocument)
+  const [projectDocument, setProjectDocument] = useState(createDefaultProjectDocument)
   const issues = useMemo(
-    () => validateStraightRoad(document.parametricRoad, phase1DrawingSettings),
-    [document.parametricRoad],
+    () => validateStraightRoad(projectDocument.parametricRoad, phase1DrawingSettings),
+    [projectDocument.parametricRoad],
   )
+  const exportSvg = () => {
+    const svg = window.document.querySelector<SVGSVGElement>('.road-preview')
+    if (!svg) return
+    downloadTextFile('road-concept.svg', serializeSvgElement(svg), 'image/svg+xml')
+  }
 
   return (
     <div className="app-shell">
-      <TopBar issueCount={issues.length} />
+      <TopBar
+        issueCount={issues.length}
+        onSaveProjectJson={() =>
+          downloadTextFile(
+            'road-concept-project.json',
+            serializeProjectDocument(projectDocument),
+            'application/json',
+          )
+        }
+        onLoadProjectJson={(json) => setProjectDocument(parseProjectDocumentJson(json))}
+        onExportSvg={exportSvg}
+      />
       <main className="workspace">
         <LeftPalette
           onAddManualThroughArrow={() =>
-            setDocument((current) => placeManualMarking(current, 'through-arrow'))
+            setProjectDocument((current) => placeManualMarking(current, 'through-arrow'))
           }
         />
         <section className="canvas-panel" aria-label="Parametric road concept preview">
@@ -45,14 +64,16 @@ export function App() {
 
           <div className="canvas-stage">
             <StraightRoadPreview
-              parameters={document.parametricRoad}
+              parameters={projectDocument.parametricRoad}
               settings={phase1DrawingSettings}
-              viewOptions={document.viewOptions}
-              canvasObjects={document.canvasObjects}
-              selectedObjectId={document.selectedObjectId}
-              onSelectObject={(id) => setDocument((current) => selectCanvasObject(current, id))}
+              viewOptions={projectDocument.viewOptions}
+              canvasObjects={projectDocument.canvasObjects}
+              selectedObjectId={projectDocument.selectedObjectId}
+              onSelectObject={(id) =>
+                setProjectDocument((current) => selectCanvasObject(current, id))
+              }
               onMoveObject={(id, x, y) =>
-                setDocument((current) => updateCanvasObjectPosition(current, id, x, y))
+                setProjectDocument((current) => updateCanvasObjectPosition(current, id, x, y))
               }
             />
           </div>
@@ -63,9 +84,9 @@ export function App() {
           </div>
         </section>
         <RightInspector
-          document={document}
+          document={projectDocument}
           issues={issues}
-          onDocumentChange={setDocument}
+          onDocumentChange={setProjectDocument}
         />
       </main>
     </div>
