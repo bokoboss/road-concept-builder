@@ -140,6 +140,8 @@ Select lane/approach/area -> Add Marking -> system places it automatically -> ad
 The marking palette should be in the left panel.
 The selected marking should be edited in the right inspector.
 
+Phase 2C keeps marking adjustment deliberately simple: generated arrow markings can be selected in the inspector, hidden, nudged in X/Y meters, and scaled. This supports report cleanup without introducing drag-and-drop CAD editing or a full marking library.
+
 ## Validation UX
 
 Validation must guide rather than interrupt.
@@ -163,6 +165,8 @@ Long-term view modes:
 3. Standard Check Mode.
 
 MVP can implement only Edit Mode and Export Preview.
+
+Phase 2C adds drawing-level display toggles for clean screenshots. These toggles hide SVG drawing labels and/or pavement markings only; validation panel text and app diagnostics remain visible.
 
 ## Phase 0 UI Shell Requirement
 

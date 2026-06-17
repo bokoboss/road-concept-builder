@@ -9,6 +9,32 @@ export type UTurnPocketParameters = {
   showArrow: boolean
 }
 
+export type DrawingViewOptions = {
+  showLabels: boolean
+  showLaneLabels: boolean
+  showFeatureLabels: boolean
+  showPavementMarkings: boolean
+}
+
+export type PavementMarkingType = 'through-arrow' | 'u-turn-arrow' | 'pocket-u-turn-arrow'
+
+export type SourceStatus =
+  | 'THAI_AUTHORITY'
+  | 'AGENCY_MANUAL'
+  | 'INTERNATIONAL_BEST_PRACTICE'
+  | 'PROJECT_ASSUMPTION'
+  | 'CUSTOM_CONCEPT'
+  | 'TODO_VERIFY'
+
+export type PavementMarkingAdjustment = {
+  offsetXMeters: number
+  offsetYMeters: number
+  visible: boolean
+  scale: number
+}
+
+export type PavementMarkingAdjustmentMap = Record<string, PavementMarkingAdjustment>
+
 export type UTurnParameters = {
   enabled: boolean
   direction: UTurnDirection
@@ -27,6 +53,7 @@ export type StraightRoadParameters = {
   medianWidthMeters: number
   showLaneArrows: boolean
   uTurn: UTurnParameters
+  markingAdjustments: PavementMarkingAdjustmentMap
 }
 
 export type Phase1DrawingSettings = {
@@ -39,6 +66,13 @@ export const phase1DrawingSettings: Phase1DrawingSettings = {
   pxPerMeter: 18,
   segmentLengthMeters: 42,
   maxLaneCountPerDirection: 8,
+}
+
+export const defaultDrawingViewOptions: DrawingViewOptions = {
+  showLabels: true,
+  showLaneLabels: true,
+  showFeatureLabels: true,
+  showPavementMarkings: true,
 }
 
 const ABSOLUTE_MAX_LANE_COUNT_PER_DIRECTION = 16
@@ -96,6 +130,7 @@ export const defaultStraightRoadParameters: StraightRoadParameters = {
   medianType: 'raised',
   medianWidthMeters: 2,
   showLaneArrows: true,
+  markingAdjustments: {},
   uTurn: {
     enabled: false,
     direction: 'eastbound-to-westbound',

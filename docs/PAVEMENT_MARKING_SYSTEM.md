@@ -149,6 +149,20 @@ The first useful marking library should include only high-value, commonly used i
 
 ## Placement Behavior
 
+### Phase 2C Foundation
+
+Phase 2C establishes the first pavement-marking layer by converting the existing generated through arrows, U-turn arrows, and U-turn pocket arrows into overlay marking objects.
+
+These markings:
+
+- are generated from lane, U-turn opening, and pocket geometry;
+- can be globally hidden from the SVG drawing;
+- can be individually hidden, nudged in X/Y meters, and scaled from the inspector;
+- use `PROJECT_ASSUMPTION` source status;
+- remain schematic/report-oriented and are not exact Thai-standard symbol geometry.
+
+This phase does not add a general marking library, warning bars, text markings, stop lines, freehand drawing, drag-and-drop editing, save/load, or real export.
+
 ### Lane Arrow
 
 When the user selects a lane and adds a lane arrow:
@@ -262,6 +276,28 @@ type MarkingObject = {
 };
 ```
 
+The current Phase 2C implementation uses this reduced generated shape for rendered arrow overlays:
+
+```ts
+type GeneratedArrowMarking = {
+  id: string;
+  type: 'through-arrow' | 'u-turn-arrow' | 'pocket-u-turn-arrow';
+  x: number;
+  y: number;
+  rotationDeg: number;
+  scale: number;
+  visible: boolean;
+  source: 'generated';
+  sourceStatus: 'PROJECT_ASSUMPTION';
+  direction?: string;
+  targetY?: number;
+  offsetXMeters: number;
+  offsetYMeters: number;
+};
+```
+
+Generated arrows are pavement markings, not structural geometry. Their default positions come from the same lane/U-turn/pocket geometry used in Phase 1-2B, but user nudges are stored separately as marking adjustments.
+
 ## Inspector Fields
 
 For a selected marking, show only relevant fields.
@@ -275,6 +311,8 @@ For a selected marking, show only relevant fields.
 - spacing;
 - scale;
 - rotation mode.
+
+Phase 2C exposes only the controls needed for generated arrow markings: selected marking, visible, X nudge, Y nudge, and scale.
 
 ### Stop Line Inspector
 

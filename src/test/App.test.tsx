@@ -3,16 +3,22 @@ import { describe, expect, it } from 'vitest'
 import { App } from '../app/App'
 import { StraightRoadPreview } from '../components/StraightRoadPreview'
 import {
+  defaultDrawingViewOptions,
   defaultStraightRoadParameters,
   phase1DrawingSettings,
+  type DrawingViewOptions,
   type StraightRoadParameters,
 } from '../domain/straightRoad'
 
-function preview(overrides: Partial<StraightRoadParameters> = {}) {
+function preview(
+  overrides: Partial<StraightRoadParameters> = {},
+  viewOverrides: Partial<DrawingViewOptions> = {},
+) {
   return renderToStaticMarkup(
     <StraightRoadPreview
       parameters={{ ...defaultStraightRoadParameters, ...overrides }}
       settings={phase1DrawingSettings}
+      viewOptions={{ ...defaultDrawingViewOptions, ...viewOverrides }}
     />,
   )
 }
@@ -133,6 +139,17 @@ describe('Phase 1 app shell', () => {
     expect(markup).toContain('Show U-turn arrow')
   })
 
+  it('exposes Phase 2C view options and marking nudge controls', () => {
+    const markup = renderToStaticMarkup(<App />)
+
+    expect(markup).toContain('View options')
+    expect(markup).toContain('Show drawing labels')
+    expect(markup).toContain('Show pavement markings')
+    expect(markup).toContain('Selected marking')
+    expect(markup).toContain('Nudge X (m)')
+    expect(markup).toContain('Nudge Y (m)')
+  })
+
   it('exposes compact Phase 2B U-turn pocket controls', () => {
     const markup = renderToStaticMarkup(<App />)
 
@@ -163,6 +180,62 @@ describe('Phase 1 app shell', () => {
     expect(markup).toContain('data-testid="uturn-arrow"')
     expect(markup).toContain('data-direction="eastbound-to-westbound"')
     expect(markup).toContain('scale(1 1)')
+  })
+
+  it('can hide drawing labels without changing rendered road geometry', () => {
+    const visible = preview({
+      uTurn: { ...defaultStraightRoadParameters.uTurn, enabled: true },
+    })
+    const labelsHidden = preview(
+      {
+        uTurn: { ...defaultStraightRoadParameters.uTurn, enabled: true },
+      },
+      { showLabels: false },
+    )
+
+    expect(visible).toContain('data-testid="generated-road"')
+    expect(labelsHidden).toContain('data-testid="generated-road"')
+    expect(visible).toContain('width="756"')
+    expect(labelsHidden).toContain('width="756"')
+    expect(labelsHidden).not.toContain('data-testid="eastbound-carriageway-label"')
+    expect(labelsHidden).not.toContain('data-testid="westbound-carriageway-label"')
+    expect(labelsHidden).not.toContain('data-testid="uturn-opening-label"')
+    expect(labelsHidden).not.toContain('Outer / near-side lane')
+  })
+
+  it('can hide only lane labels while keeping feature labels', () => {
+    const markup = preview({}, { showLaneLabels: false })
+
+    expect(markup).toContain('data-testid="eastbound-carriageway-label"')
+    expect(markup).not.toContain('Outer / near-side lane')
+  })
+
+  it('can globally hide pavement markings while keeping road geometry', () => {
+    const markup = preview(
+      {
+        uTurn: {
+          ...defaultStraightRoadParameters.uTurn,
+          enabled: true,
+          pocket: { ...defaultStraightRoadParameters.uTurn.pocket, enabled: true },
+        },
+      },
+      { showPavementMarkings: false },
+    )
+
+    expect(markup).toContain('data-testid="generated-road"')
+    expect(markup).toContain('data-testid="uturn-pocket"')
+    expect(markup).not.toContain('data-marking-type="through-arrow"')
+    expect(markup).not.toContain('data-testid="uturn-arrow"')
+    expect(markup).not.toContain('data-testid="uturn-pocket-arrow"')
+  })
+
+  it('renders generated through arrows as pavement markings by default', () => {
+    const markup = preview()
+
+    expect(markup).toContain('data-testid="eastbound-lane-1-arrow"')
+    expect(markup).toContain('data-marking-type="through-arrow"')
+    expect(markup).toContain('rotate(90) scale(1)')
+    expect(markup).toContain('rotate(-90) scale(1)')
   })
 
   it('mirrors westbound-to-eastbound U-turn arrows', () => {
@@ -210,6 +283,33 @@ describe('Phase 1 app shell', () => {
     expect(markup).toContain('data-direction="eastbound-to-westbound"')
     expect(markup).toContain('data-testid="uturn-pocket-arrow"')
     expect(markup).toContain('scale(1 1)')
+  })
+
+  it('omits a hidden individual marking and moves nudged markings', () => {
+    const hiddenMarkup = preview({
+      markingAdjustments: {
+        'eastbound-lane-1-arrow': {
+          offsetXMeters: 0,
+          offsetYMeters: 0,
+          visible: false,
+          scale: 1,
+        },
+      },
+    })
+    const nudgedMarkup = preview({
+      markingAdjustments: {
+        'eastbound-lane-1-arrow': {
+          offsetXMeters: 1,
+          offsetYMeters: 0.5,
+          visible: true,
+          scale: 1,
+        },
+      },
+    })
+
+    expect(hiddenMarkup).not.toContain('data-testid="eastbound-lane-1-arrow"')
+    expect(hiddenMarkup).toContain('data-testid="eastbound-lane-2-arrow"')
+    expect(nudgedMarkup).toContain('translate(623.84 181.5)')
   })
 
   it('renders a valid westbound-to-eastbound U-turn pocket and mirrored pocket arrow', () => {

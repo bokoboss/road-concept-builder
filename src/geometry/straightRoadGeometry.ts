@@ -5,6 +5,9 @@ import {
   phase2UTurnNumericLimits,
   sanitizePhase1DrawingSettings,
   type Phase1DrawingSettings,
+  type PavementMarkingAdjustment,
+  type PavementMarkingType,
+  type SourceStatus,
   type StraightRoadParameters,
   type UTurnDirection,
 } from '../domain/straightRoad'
@@ -88,6 +91,22 @@ export type UTurnPocketArrowGeometry = {
   targetY: number
 }
 
+export type PavementMarkingGeometry = {
+  id: string
+  type: PavementMarkingType
+  x: number
+  y: number
+  rotationDeg: number
+  scale: number
+  visible: boolean
+  source: 'generated' | 'manual'
+  sourceStatus: SourceStatus
+  direction?: RoadDirection | UTurnDirection
+  targetY?: number
+  offsetXMeters: number
+  offsetYMeters: number
+}
+
 export type StraightRoadGeometry = {
   operationMode: RoadOperationMode
   lengthMeters: number
@@ -106,6 +125,7 @@ export type StraightRoadGeometry = {
   uTurnArrow: UTurnArrowGeometry | null
   uTurnPocket: UTurnPocketGeometry | null
   uTurnPocketArrow: UTurnPocketArrowGeometry | null
+  pavementMarkings: PavementMarkingGeometry[]
 }
 
 function clamp(value: number, min: number, max: number) {
@@ -134,6 +154,41 @@ function hasUsablePhysicalMedianForUTurn(parameters: StraightRoadParameters) {
 
 function validRange(value: number, min: number, max: number) {
   return Number.isFinite(value) && value >= min && value <= max
+}
+
+function adjustmentFor(
+  parameters: StraightRoadParameters,
+  id: string,
+): PavementMarkingAdjustment {
+  const adjustment = parameters.markingAdjustments[id]
+
+  return {
+    offsetXMeters:
+      adjustment && Number.isFinite(adjustment.offsetXMeters) ? adjustment.offsetXMeters : 0,
+    offsetYMeters:
+      adjustment && Number.isFinite(adjustment.offsetYMeters) ? adjustment.offsetYMeters : 0,
+    visible: adjustment?.visible ?? true,
+    scale: adjustment && Number.isFinite(adjustment.scale) && adjustment.scale > 0 ? adjustment.scale : 1,
+  }
+}
+
+function adjustedMarking(
+  parameters: StraightRoadParameters,
+  base: Omit<PavementMarkingGeometry, 'offsetXMeters' | 'offsetYMeters' | 'scale' | 'visible'>,
+  generatedVisible: boolean,
+): PavementMarkingGeometry {
+  const adjustment = adjustmentFor(parameters, base.id)
+
+  return {
+    ...base,
+    x: base.x + adjustment.offsetXMeters,
+    y: base.y + adjustment.offsetYMeters,
+    targetY: base.targetY === undefined ? undefined : base.targetY + adjustment.offsetYMeters,
+    scale: adjustment.scale,
+    visible: generatedVisible && adjustment.visible,
+    offsetXMeters: adjustment.offsetXMeters,
+    offsetYMeters: adjustment.offsetYMeters,
+  }
 }
 
 function deriveOperationMode(
@@ -348,6 +403,22 @@ export function buildStraightRoadGeometry(
         rotationDegrees: lane.direction === 'eastbound' ? 90 : -90,
       }))
     : []
+  const pavementMarkings: PavementMarkingGeometry[] = arrows.map((arrow) =>
+    adjustedMarking(
+      parameters,
+      {
+        id: arrow.id,
+        type: 'through-arrow',
+        x: arrow.x,
+        y: arrow.y,
+        rotationDeg: arrow.rotationDegrees,
+        source: 'generated',
+        sourceStatus: 'PROJECT_ASSUMPTION',
+        direction: arrow.direction,
+      },
+      parameters.showLaneArrows,
+    ),
+  )
   const openingWidth = parameters.uTurn.openingWidthMeters
   const openingPosition = parameters.uTurn.positionMeters
   const openingStart = openingPosition - openingWidth / 2
@@ -420,6 +491,25 @@ export function buildStraightRoadGeometry(
           targetY: targetLane.centerY,
       }
       : null
+  if (uTurnArrow) {
+    pavementMarkings.push(
+      adjustedMarking(
+        parameters,
+        {
+          id: uTurnArrow.id,
+          type: 'u-turn-arrow',
+          x: uTurnArrow.x,
+          y: uTurnArrow.y,
+          targetY: uTurnArrow.targetY,
+          rotationDeg: 0,
+          source: 'generated',
+          sourceStatus: 'PROJECT_ASSUMPTION',
+          direction: uTurnArrow.direction,
+        },
+        parameters.uTurn.showArrow,
+      ),
+    )
+  }
   const pocket = parameters.uTurn.pocket
   const storageLength = pocket.storageLengthMeters
   const taperLength = pocket.taperLengthMeters
@@ -511,6 +601,23 @@ export function buildStraightRoadGeometry(
         y: pocketY + sourceLane.height / 2,
         targetY: targetLane.centerY,
       }
+      pavementMarkings.push(
+        adjustedMarking(
+          parameters,
+          {
+            id: uTurnPocketArrow.id,
+            type: 'pocket-u-turn-arrow',
+            x: uTurnPocketArrow.x,
+            y: uTurnPocketArrow.y,
+            targetY: uTurnPocketArrow.targetY,
+            rotationDeg: 0,
+            source: 'generated',
+            sourceStatus: 'PROJECT_ASSUMPTION',
+            direction: uTurnPocketArrow.direction,
+          },
+          pocket.showArrow,
+        ),
+      )
     }
   }
 
@@ -535,5 +642,6 @@ export function buildStraightRoadGeometry(
     uTurnArrow,
     uTurnPocket,
     uTurnPocketArrow,
+    pavementMarkings,
   }
 }

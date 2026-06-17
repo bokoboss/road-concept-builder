@@ -1,4 +1,6 @@
 import {
+  defaultDrawingViewOptions,
+  type DrawingViewOptions,
   sanitizePhase1DrawingSettings,
   type MedianType,
   type Phase1DrawingSettings,
@@ -14,6 +16,10 @@ import {
 const ROAD_X = 122
 const ROAD_CENTER_Y = 285
 const MAX_ROAD_RENDER_HEIGHT = 360
+
+function svgNumber(value: number) {
+  return Number(value.toFixed(3))
+}
 
 function RoadRect({
   rect,
@@ -58,9 +64,22 @@ function RoadPolygon({
   )
 }
 
-function ThroughArrow({ x, y, rotate }: { x: number; y: number; rotate: number }) {
+function ThroughArrow({
+  x,
+  y,
+  rotate,
+  scale = 1,
+}: {
+  x: number
+  y: number
+  rotate: number
+  scale?: number
+}) {
   return (
-    <g transform={`translate(${x} ${y}) rotate(${rotate})`} className="road-arrow">
+    <g
+      transform={`translate(${svgNumber(x)} ${svgNumber(y)}) rotate(${rotate}) scale(${svgNumber(scale)})`}
+      className="road-arrow"
+    >
       <path d="M0 20V-16" />
       <path d="m-7-9 7-9 7 9" />
     </g>
@@ -72,12 +91,14 @@ function UTurnArrow({
   y,
   targetY,
   direction,
+  scale = 1,
   testId = 'uturn-arrow',
 }: {
   x: number
   y: number
   targetY: number
   direction: 'eastbound-to-westbound' | 'westbound-to-eastbound'
+  scale?: number
   testId?: string
 }) {
   const horizontalScale = direction === 'eastbound-to-westbound' ? 1 : -1
@@ -87,12 +108,47 @@ function UTurnArrow({
     <g
       data-testid={testId}
       data-direction={direction}
-      transform={`translate(${x} ${y}) scale(${horizontalScale} 1)`}
+      transform={`translate(${svgNumber(x)} ${svgNumber(y)}) scale(${svgNumber(horizontalScale * scale)} ${svgNumber(scale)})`}
       className="uturn-arrow"
     >
       <path d={`M-25 0H3C22 0 22 ${targetOffset} 3 ${targetOffset}H-12`} />
       <path d={`m-4 ${targetOffset - 8}-8 8 8 8`} />
     </g>
+  )
+}
+
+function PavementMarking({
+  marking,
+  roadTop,
+  px,
+}: {
+  marking: ReturnType<typeof buildStraightRoadGeometry>['pavementMarkings'][number]
+  roadTop: number
+  px: (value: number) => number
+}) {
+  const x = ROAD_X + px(marking.x)
+  const y = roadTop + px(marking.y)
+  const targetY = marking.targetY === undefined ? undefined : roadTop + px(marking.targetY)
+
+  if (marking.type === 'through-arrow') {
+    return (
+      <g data-testid={marking.id} data-marking-type={marking.type}>
+        <ThroughArrow x={x} y={y} rotate={marking.rotationDeg} scale={marking.scale} />
+      </g>
+    )
+  }
+
+  if (targetY === undefined) return null
+
+  return (
+    <UTurnArrow
+      testId={marking.id}
+      x={x}
+      y={y}
+      targetY={targetY}
+      direction={marking.direction as 'eastbound-to-westbound' | 'westbound-to-eastbound'}
+      scale={marking.scale}
+    />
   )
 }
 
@@ -123,9 +179,11 @@ function trafficNote(operationMode: RoadOperationMode) {
 export function StraightRoadPreview({
   parameters,
   settings,
+  viewOptions = defaultDrawingViewOptions,
 }: {
   parameters: StraightRoadParameters
   settings: Phase1DrawingSettings
+  viewOptions?: DrawingViewOptions
 }) {
   const safeSettings = sanitizePhase1DrawingSettings(settings)
   const geometry = buildStraightRoadGeometry(parameters, safeSettings)
@@ -142,6 +200,9 @@ export function StraightRoadPreview({
     geometry.operationMode === 'twoWay' || geometry.operationMode === 'eastboundOnly'
   const showWestboundLabel =
     geometry.operationMode === 'twoWay' || geometry.operationMode === 'westboundOnly'
+  const showLabels = viewOptions.showLabels
+  const showLaneLabels = showLabels && viewOptions.showLaneLabels
+  const showFeatureLabels = showLabels && viewOptions.showFeatureLabels
 
   return (
     <svg
@@ -289,33 +350,19 @@ export function StraightRoadPreview({
               y2={toSvgY(line.y2)}
             />
           ))}
-          {geometry.arrows.map((arrow) => (
-            <ThroughArrow
-              key={arrow.id}
-              x={ROAD_X + px(arrow.x)}
-              y={toSvgY(arrow.y)}
-              rotate={arrow.rotationDegrees}
-            />
-          ))}
-          {geometry.uTurnArrow && (
-            <UTurnArrow
-              x={ROAD_X + px(geometry.uTurnArrow.x)}
-              y={toSvgY(geometry.uTurnArrow.y)}
-              targetY={toSvgY(geometry.uTurnArrow.targetY)}
-              direction={geometry.uTurnArrow.direction}
-            />
-          )}
-          {geometry.uTurnPocketArrow && (
-            <UTurnArrow
-              testId="uturn-pocket-arrow"
-              x={ROAD_X + px(geometry.uTurnPocketArrow.x)}
-              y={toSvgY(geometry.uTurnPocketArrow.y)}
-              targetY={toSvgY(geometry.uTurnPocketArrow.targetY)}
-              direction={geometry.uTurnPocketArrow.direction}
-            />
-          )}
+          {viewOptions.showPavementMarkings &&
+            geometry.pavementMarkings
+              .filter((marking) => marking.visible)
+              .map((marking) => (
+                <PavementMarking
+                  key={marking.id}
+                  marking={marking}
+                  roadTop={roadTop}
+                  px={px}
+                />
+              ))}
 
-          {geometry.medianOpening && (
+          {showFeatureLabels && geometry.medianOpening && (
             <g className="uturn-opening-label" data-testid="uturn-opening-label">
               <rect
                 x={ROAD_X + px(geometry.medianOpening.x + geometry.medianOpening.width / 2) - 49}
@@ -334,19 +381,21 @@ export function StraightRoadPreview({
             </g>
           )}
 
-          <g className="lane-position-label">
-            {geometry.lanes
-              .filter((lane) => lane.positionLabel)
-              .map((lane) => (
-                <text key={`${lane.id}-label`} x={ROAD_X + 14} y={toSvgY(lane.centerY) + 3}>
-                  {lane.positionLabel}
-                </text>
-              ))}
-          </g>
+          {showLaneLabels && (
+            <g className="lane-position-label">
+              {geometry.lanes
+                .filter((lane) => lane.positionLabel)
+                .map((lane) => (
+                  <text key={`${lane.id}-label`} x={ROAD_X + 14} y={toSvgY(lane.centerY) + 3}>
+                    {lane.positionLabel}
+                  </text>
+                ))}
+            </g>
+          )}
         </g>
       )}
 
-      {showEastboundLabel && (
+      {showFeatureLabels && showEastboundLabel && (
         <g className="road-label" data-testid="eastbound-carriageway-label">
           <rect x={ROAD_X} y={Math.max(48, roadTop - 42)} width="176" height="28" rx="14" />
           <text x={ROAD_X + 88} y={Math.max(67, roadTop - 23)} textAnchor="middle">
@@ -354,7 +403,7 @@ export function StraightRoadPreview({
           </text>
         </g>
       )}
-      {showWestboundLabel && (
+      {showFeatureLabels && showWestboundLabel && (
         <g className="road-label" data-testid="westbound-carriageway-label">
           <rect
             x={ROAD_X}
@@ -369,15 +418,17 @@ export function StraightRoadPreview({
         </g>
       )}
 
-      <g className="north-indicator" transform="translate(920 70)">
-        <path d="M0 22V-8" />
-        <path d="m-6 0 6-10L6 0" />
-        <text x="0" y="-19" textAnchor="middle">
-          N
-        </text>
-      </g>
+      {showFeatureLabels && (
+        <g className="north-indicator" transform="translate(920 70)">
+          <path d="M0 22V-8" />
+          <path d="m-6 0 6-10L6 0" />
+          <text x="0" y="-19" textAnchor="middle">
+            N
+          </text>
+        </g>
+      )}
 
-      {geometry.operationMode !== 'noLanes' && (
+      {showFeatureLabels && geometry.operationMode !== 'noLanes' && (
         <g className="road-dimension-note">
           <rect x={roadEndX - 178} y={roadTop - 39} width="178" height="24" rx="5" />
           <text x={roadEndX - 89} y={roadTop - 23} textAnchor="middle">
@@ -386,12 +437,14 @@ export function StraightRoadPreview({
         </g>
       )}
 
-      <g className="traffic-note">
-        <rect x="105" y="535" width="790" height="38" rx="7" />
-        <text x="500" y="559" textAnchor="middle">
-          {trafficNote(geometry.operationMode)}
-        </text>
-      </g>
+      {showFeatureLabels && (
+        <g className="traffic-note">
+          <rect x="105" y="535" width="790" height="38" rx="7" />
+          <text x="500" y="559" textAnchor="middle">
+            {trafficNote(geometry.operationMode)}
+          </text>
+        </g>
+      )}
     </svg>
   )
 }

@@ -122,6 +122,28 @@ Add one basic U-turn-specific pocket lane tied to the existing Phase 2 median op
 - invalid pocket configurations keep rendering the Phase 2 base road/opening and omit misleading pocket geometry;
 - no warning-bar system, general auxiliary-lane framework, intersections, slip lanes, or signalized U-turns are introduced.
 
+## Phase 2C - Annotation and Pavement Marking Layer Foundation
+
+### Goal
+
+Make generated straight-road diagrams easier to reuse in reports and presentations by allowing drawing text to be hidden and by treating generated arrows as pavement marking overlays.
+
+### Scope
+
+- drawing view options for labels, lane labels, feature labels, and pavement markings;
+- generated through arrows represented as pavement marking objects;
+- generated U-turn and pocket U-turn arrows represented as pavement marking objects;
+- inspector-based visibility, X/Y nudge, and scale controls for generated arrow markings;
+- no freehand drawing, drag-and-drop CAD editing, full marking library, save/load, or real export.
+
+### Exit Criteria
+
+- users can hide drawing labels without affecting road geometry or validation;
+- users can hide all pavement markings for a clean base-road screenshot;
+- users can reposition generated arrows through simple inspector controls;
+- existing Phase 1, Phase 2A, and Phase 2B geometry and validation behavior remains passing;
+- U-turn arrows are treated as pavement marking overlays, while exact Thai-standard symbol libraries remain future work.
+
 ## Phase 3 - Basic Intersection
 
 ### Goal

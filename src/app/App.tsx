@@ -3,11 +3,16 @@ import { LeftPalette } from '../components/LeftPalette'
 import { RightInspector } from '../components/RightInspector'
 import { StraightRoadPreview } from '../components/StraightRoadPreview'
 import { TopBar } from '../components/TopBar'
-import { defaultStraightRoadParameters, phase1DrawingSettings } from '../domain/straightRoad'
+import {
+  defaultDrawingViewOptions,
+  defaultStraightRoadParameters,
+  phase1DrawingSettings,
+} from '../domain/straightRoad'
 import { validateStraightRoad } from '../validation/validateStraightRoad'
 
 export function App() {
   const [parameters, setParameters] = useState(defaultStraightRoadParameters)
+  const [viewOptions, setViewOptions] = useState(defaultDrawingViewOptions)
   const issues = useMemo(
     () => validateStraightRoad(parameters, phase1DrawingSettings),
     [parameters],
@@ -32,7 +37,11 @@ export function App() {
           </div>
 
           <div className="canvas-stage">
-            <StraightRoadPreview parameters={parameters} settings={phase1DrawingSettings} />
+            <StraightRoadPreview
+              parameters={parameters}
+              settings={phase1DrawingSettings}
+              viewOptions={viewOptions}
+            />
           </div>
 
           <div className="canvas-footer">
@@ -40,7 +49,13 @@ export function App() {
             <span>SVG canvas - approximate scale</span>
           </div>
         </section>
-        <RightInspector parameters={parameters} issues={issues} onChange={setParameters} />
+        <RightInspector
+          parameters={parameters}
+          viewOptions={viewOptions}
+          issues={issues}
+          onChange={setParameters}
+          onViewOptionsChange={setViewOptions}
+        />
       </main>
     </div>
   )

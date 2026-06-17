@@ -90,6 +90,7 @@ describe('buildStraightRoadGeometry', () => {
     )
     expect(eastboundArrows.every((arrow) => arrow.rotationDegrees === 90)).toBe(true)
     expect(westboundArrows.every((arrow) => arrow.rotationDegrees === -90)).toBe(true)
+    expect(result.pavementMarkings.filter((marking) => marking.type === 'through-arrow')).toHaveLength(4)
   })
 
   it('renders eastbound-only geometry without median or center separation', () => {
@@ -254,6 +255,57 @@ describe('buildStraightRoadGeometry', () => {
 
   it('hides arrows when requested', () => {
     expect(geometry({ showLaneArrows: false }).arrows).toEqual([])
+    expect(
+      geometry({ showLaneArrows: false }).pavementMarkings.filter(
+        (marking) => marking.type === 'through-arrow',
+      ),
+    ).toEqual([])
+  })
+
+  it('keeps lane arrows as generated pavement markings by default', () => {
+    const result = geometry()
+
+    expect(result.pavementMarkings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: 'eastbound-lane-1-arrow',
+          type: 'through-arrow',
+          x: 26.88,
+          y: 3.25,
+          rotationDeg: 90,
+          visible: true,
+          source: 'generated',
+          sourceStatus: 'PROJECT_ASSUMPTION',
+        }),
+      ]),
+    )
+  })
+
+  it('applies marking visibility and position adjustments without changing lane geometry', () => {
+    const result = geometry({
+      markingAdjustments: {
+        'eastbound-lane-1-arrow': {
+          offsetXMeters: 1.25,
+          offsetYMeters: -0.5,
+          visible: false,
+          scale: 1.2,
+        },
+      },
+    })
+
+    expect(result.lanes.find((lane) => lane.id === 'eastbound-lane-1')).toMatchObject({
+      centerY: 3.25,
+      x: 0,
+      width: 42,
+    })
+    expect(result.pavementMarkings.find((marking) => marking.id === 'eastbound-lane-1-arrow')).toMatchObject({
+      x: 28.13,
+      y: 2.75,
+      offsetXMeters: 1.25,
+      offsetYMeters: -0.5,
+      visible: false,
+      scale: 1.2,
+    })
   })
 
   it('keeps Phase 1 median rendering unchanged when U-turn is disabled', () => {
@@ -309,6 +361,17 @@ describe('buildStraightRoadGeometry', () => {
       y: 6.75,
       targetY: 12.25,
     })
+    expect(eastboundToWestbound.pavementMarkings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: 'uturn-arrow',
+          type: 'u-turn-arrow',
+          x: 21,
+          y: 6.75,
+          targetY: 12.25,
+        }),
+      ]),
+    )
     expect(westboundToEastbound.uTurnArrow).toMatchObject({
       direction: 'westbound-to-eastbound',
       sourceLaneId: 'westbound-lane-1',
@@ -413,6 +476,17 @@ describe('buildStraightRoadGeometry', () => {
       y: 6.75,
       targetY: 12.25,
     })
+    expect(result.pavementMarkings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: 'uturn-pocket-arrow',
+          type: 'pocket-u-turn-arrow',
+          x: 14,
+          y: 6.75,
+          targetY: 12.25,
+        }),
+      ]),
+    )
   })
 
   it('keeps eastbound-to-westbound pocket surfaces out of median and westbound space', () => {

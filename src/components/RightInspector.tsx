@@ -1,20 +1,25 @@
-import type { ChangeEvent } from 'react'
+import { useMemo, useState, type ChangeEvent } from 'react'
 import {
   phase1DrawingSettings,
   phase1NumericLimits,
   phase2BPocketNumericLimits,
   phase2UTurnNumericLimits,
+  type DrawingViewOptions,
   type MedianType,
+  type PavementMarkingAdjustment,
   type StraightRoadParameters,
   type UTurnDirection,
 } from '../domain/straightRoad'
+import { buildStraightRoadGeometry } from '../geometry/straightRoadGeometry'
 import type { ValidationIssue } from '../validation/validateStraightRoad'
 import { ValidationPanel } from './ValidationPanel'
 
 type RightInspectorProps = {
   parameters: StraightRoadParameters
+  viewOptions: DrawingViewOptions
   issues: ValidationIssue[]
   onChange: (parameters: StraightRoadParameters) => void
+  onViewOptionsChange: (viewOptions: DrawingViewOptions) => void
 }
 
 function NumberField({
@@ -54,11 +59,64 @@ function NumberField({
   )
 }
 
-export function RightInspector({ parameters, issues, onChange }: RightInspectorProps) {
+function markingLabel(id: string) {
+  return id
+    .replaceAll('-', ' ')
+    .replace(/\b\w/g, (match) => match.toUpperCase())
+}
+
+function adjustmentFor(
+  parameters: StraightRoadParameters,
+  id: string,
+): PavementMarkingAdjustment {
+  return {
+    offsetXMeters: parameters.markingAdjustments[id]?.offsetXMeters ?? 0,
+    offsetYMeters: parameters.markingAdjustments[id]?.offsetYMeters ?? 0,
+    visible: parameters.markingAdjustments[id]?.visible ?? true,
+    scale: parameters.markingAdjustments[id]?.scale ?? 1,
+  }
+}
+
+export function RightInspector({
+  parameters,
+  viewOptions,
+  issues,
+  onChange,
+  onViewOptionsChange,
+}: RightInspectorProps) {
+  const geometry = useMemo(
+    () => buildStraightRoadGeometry(parameters, phase1DrawingSettings),
+    [parameters],
+  )
+  const generatedMarkings = geometry.pavementMarkings.filter(
+    (marking) => marking.source === 'generated',
+  )
+  const [selectedMarkingId, setSelectedMarkingId] = useState('')
+  const activeMarking =
+    generatedMarkings.find((marking) => marking.id === selectedMarkingId) ?? generatedMarkings[0]
+  const activeAdjustment = activeMarking ? adjustmentFor(parameters, activeMarking.id) : null
+
   const update = <Key extends keyof StraightRoadParameters>(
     key: Key,
     value: StraightRoadParameters[Key],
   ) => onChange({ ...parameters, [key]: value })
+  const updateViewOption = <Key extends keyof DrawingViewOptions>(
+    key: Key,
+    value: DrawingViewOptions[Key],
+  ) => onViewOptionsChange({ ...viewOptions, [key]: value })
+  const updateMarkingAdjustment = (
+    id: string,
+    values: Partial<PavementMarkingAdjustment>,
+  ) => {
+    const current = adjustmentFor(parameters, id)
+    onChange({
+      ...parameters,
+      markingAdjustments: {
+        ...parameters.markingAdjustments,
+        [id]: { ...current, ...values },
+      },
+    })
+  }
   const updateUTurn = <Key extends keyof StraightRoadParameters['uTurn']>(
     key: Key,
     value: StraightRoadParameters['uTurn'][Key],
@@ -149,6 +207,44 @@ export function RightInspector({ parameters, issues, onChange }: RightInspectorP
         </div>
 
         <div className="inspector-group">
+          <h3>View options</h3>
+          <label className="inspector-field checkbox-field">
+            <span>Show drawing labels</span>
+            <input
+              type="checkbox"
+              checked={viewOptions.showLabels}
+              onChange={(event) => updateViewOption('showLabels', event.target.checked)}
+            />
+          </label>
+          <label className="inspector-field checkbox-field">
+            <span>Show lane labels</span>
+            <input
+              type="checkbox"
+              checked={viewOptions.showLaneLabels}
+              disabled={!viewOptions.showLabels}
+              onChange={(event) => updateViewOption('showLaneLabels', event.target.checked)}
+            />
+          </label>
+          <label className="inspector-field checkbox-field">
+            <span>Show feature labels</span>
+            <input
+              type="checkbox"
+              checked={viewOptions.showFeatureLabels}
+              disabled={!viewOptions.showLabels}
+              onChange={(event) => updateViewOption('showFeatureLabels', event.target.checked)}
+            />
+          </label>
+          <label className="inspector-field checkbox-field">
+            <span>Show pavement markings</span>
+            <input
+              type="checkbox"
+              checked={viewOptions.showPavementMarkings}
+              onChange={(event) => updateViewOption('showPavementMarkings', event.target.checked)}
+            />
+          </label>
+        </div>
+
+        <div className="inspector-group">
           <h3>Markings</h3>
           <label className="inspector-field checkbox-field">
             <span>Show lane arrows</span>
@@ -158,6 +254,63 @@ export function RightInspector({ parameters, issues, onChange }: RightInspectorP
               onChange={(event) => update('showLaneArrows', event.target.checked)}
             />
           </label>
+          <label className="inspector-field">
+            <span>Selected marking</span>
+            <select
+              value={activeMarking?.id ?? ''}
+              disabled={generatedMarkings.length === 0}
+              onChange={(event) => setSelectedMarkingId(event.target.value)}
+            >
+              {generatedMarkings.length === 0 ? (
+                <option value="">No generated markings</option>
+              ) : (
+                generatedMarkings.map((marking) => (
+                  <option key={marking.id} value={marking.id}>
+                    {markingLabel(marking.id)}
+                  </option>
+                ))
+              )}
+            </select>
+          </label>
+          {activeMarking && activeAdjustment && (
+            <div className="inspector-subgroup">
+              <h4>Marking position</h4>
+              <label className="inspector-field checkbox-field">
+                <span>Visible</span>
+                <input
+                  type="checkbox"
+                  checked={activeAdjustment.visible}
+                  onChange={(event) =>
+                    updateMarkingAdjustment(activeMarking.id, { visible: event.target.checked })
+                  }
+                />
+              </label>
+              <NumberField
+                label="Nudge X (m)"
+                value={activeAdjustment.offsetXMeters}
+                step={0.25}
+                onChange={(value) =>
+                  updateMarkingAdjustment(activeMarking.id, { offsetXMeters: value })
+                }
+              />
+              <NumberField
+                label="Nudge Y (m)"
+                value={activeAdjustment.offsetYMeters}
+                step={0.25}
+                onChange={(value) =>
+                  updateMarkingAdjustment(activeMarking.id, { offsetYMeters: value })
+                }
+              />
+              <NumberField
+                label="Scale"
+                value={activeAdjustment.scale}
+                step={0.1}
+                min={0.4}
+                max={2}
+                onChange={(value) => updateMarkingAdjustment(activeMarking.id, { scale: value })}
+              />
+            </div>
+          )}
         </div>
 
         <div className="inspector-group">

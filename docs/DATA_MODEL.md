@@ -45,6 +45,21 @@ type DrawingSettings = {
 };
 ```
 
+### Drawing View Options
+
+Phase 2C separates view/display options from road geometry parameters so clean screenshots do not change the generated road model or validation result.
+
+```ts
+type DrawingViewOptions = {
+  showLabels: boolean;
+  showLaneLabels: boolean;
+  showFeatureLabels: boolean;
+  showPavementMarkings: boolean;
+};
+```
+
+The current implementation applies these options only to the SVG drawing output. Validation panel text and app diagnostics remain visible.
+
 Default:
 
 ```ts
@@ -162,7 +177,20 @@ type UturnPocket = {
 };
 ```
 
-The current Phase 2B implementation stores one nested `UTurnParameters` object on the straight-road parameters, with a nested `UTurnPocketParameters` object for the optional pocket. `positionMeters` is the opening center measured from the segment's left/west edge. The Phase 2B pocket uses the main `laneWidthMeters` value as its pocket width; no separate pocket-width control is exposed. Warning bars, signalized U-turns, and a general auxiliary-lane framework are deferred.
+The current Phase 2C implementation stores one nested `UTurnParameters` object on the straight-road parameters, with a nested `UTurnPocketParameters` object for the optional pocket. `positionMeters` is the opening center measured from the segment's left/west edge. The Phase 2B pocket uses the main `laneWidthMeters` value as its pocket width; no separate pocket-width control is exposed. Warning bars, signalized U-turns, and a general auxiliary-lane framework are deferred.
+
+Straight-road parameters also include a minimal `markingAdjustments` map keyed by generated marking id. It stores user adjustments for generated arrow overlays without changing lane, median, U-turn opening, or pocket geometry.
+
+```ts
+type PavementMarkingAdjustment = {
+  offsetXMeters: number;
+  offsetYMeters: number;
+  visible: boolean;
+  scale: number;
+};
+
+type PavementMarkingAdjustmentMap = Record<string, PavementMarkingAdjustment>;
+```
 
 ## Intersection Node
 
@@ -241,6 +269,28 @@ type MarkingObject = {
   sourceStatus: SourceStatus;
 };
 ```
+
+Phase 2C uses a smaller generated overlay shape for the existing straight-road arrows:
+
+```ts
+type PavementMarkingGeometry = {
+  id: string;
+  type: 'through-arrow' | 'u-turn-arrow' | 'pocket-u-turn-arrow';
+  x: number;
+  y: number;
+  rotationDeg: number;
+  scale: number;
+  visible: boolean;
+  source: 'generated' | 'manual';
+  sourceStatus: SourceStatus;
+  direction?: 'eastbound' | 'westbound' | UTurnDirection;
+  targetY?: number;
+  offsetXMeters: number;
+  offsetYMeters: number;
+};
+```
+
+These objects are overlay render items derived from the current road geometry. They are not structural road geometry, and hiding or nudging them does not affect validation.
 
 ## Annotation Object
 

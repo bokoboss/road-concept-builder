@@ -223,4 +223,11 @@ Phase 2B:
 - storage length.
 - pocket U-turn arrow.
 
+Phase 2C:
+
+- drawing label visibility options;
+- generated through arrows as pavement marking overlays;
+- generated U-turn and pocket U-turn arrows as pavement marking overlays;
+- inspector-based marking visibility, nudge, and scale controls.
+
 Warning bars remain deferred to a later pavement marking or polish phase.
