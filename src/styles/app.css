@@ -223,16 +223,29 @@ button {
   grid-template-columns: 32px 1fr;
   gap: 9px;
   align-items: center;
+  width: 100%;
   min-height: 48px;
   padding: 7px 8px;
   border: 1px solid transparent;
   border-radius: 8px;
+  color: inherit;
   background: #fff;
+  font: inherit;
+  text-align: left;
 }
 
 .palette-item.is-selected {
   border-color: #b9d6e7;
   background: var(--accent-soft);
+}
+
+button.palette-item {
+  cursor: pointer;
+}
+
+button.palette-item:hover {
+  border-color: #b9d6e7;
+  background: #f7fbfd;
 }
 
 .palette-icon {
@@ -390,6 +403,22 @@ button {
   stroke-width: 6;
   stroke-linecap: round;
   stroke-linejoin: round;
+}
+
+.canvas-object {
+  cursor: grab;
+}
+
+.canvas-object.is-locked {
+  cursor: default;
+}
+
+.canvas-object.is-selected .selection-ring {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2;
+  stroke-dasharray: 5 4;
+  pointer-events: none;
 }
 
 .uturn-pocket-line {

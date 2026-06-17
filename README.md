@@ -62,7 +62,7 @@ Do not add database, authentication, cloud sync, 3D, DXF/DWG export, AI prompt-t
 
 ## Current Implementation
 
-Phase 2C extends the parametric straight road segment generator with drawing label visibility controls and a minimal pavement-marking overlay layer while preserving the Phase 0 three-panel shell.
+Phase 2D extends the parametric straight road segment generator with a minimal object-based canvas/document model while preserving the Phase 0 three-panel shell and the existing road geometry engine.
 
 Included:
 
@@ -88,8 +88,11 @@ Included:
 - optional pocket U-turn arrow;
 - non-blocking pocket validation for prerequisites, storage length, taper length, fit, and missing pocket arrow.
 - view options for clean screenshots: drawing labels, lane labels, feature labels, and pavement markings can be shown or hidden from the SVG preview;
-- generated through arrows, U-turn arrows, and pocket U-turn arrows are represented as pavement marking overlay objects with generated source and `PROJECT_ASSUMPTION` source status;
-- inspector-based marking controls can hide or nudge generated arrows in X/Y meters and adjust symbol scale without changing road geometry or validation.
+- `ProjectDocument` state separates `parametricRoad`, `canvasObjects`, `viewOptions`, and `selectedObjectId`;
+- generated through arrows, U-turn arrows, and pocket U-turn arrows are represented as generated marking canvas objects with `PROJECT_ASSUMPTION` source status;
+- the left marking palette can place one manual through-arrow object with `CUSTOM_CONCEPT` source status;
+- visible marking objects can be selected and dragged directly on the SVG canvas;
+- the inspector can edit the selected object's visibility, lock state, position, rotation, scale, and z-index without changing road geometry or validation.
 
 Phase 1 uses eastbound/westbound naming because the current diagram is east-west oriented. Future phases may generalize direction naming for other alignments.
 
@@ -105,7 +108,7 @@ Phase 2 opening position is measured from the segment's left/west edge to the op
 
 Phase 2B pocket storage and taper must fit upstream of the selected median opening. Invalid pocket configurations keep rendering the Phase 2A base road/opening and omit pocket geometry so the preview does not show a misleading pocket. The pocket uses the current lane width; no separate pocket-width control is exposed in this phase.
 
-Phase 2C establishes pavement marking placement behavior for the existing generated arrows only. The arrow symbols remain schematic/report-oriented; exact Thai-standard symbol geometry, a full marking library, drag-and-drop editing, warning bars, save/load, and real export are deferred.
+Phase 2D establishes object-based editing for marking objects only. The road, lanes, median, U-turn opening, and U-turn pocket remain parametric. Arrow symbols remain schematic/report-oriented; exact Thai-standard symbol geometry, a full marking library, warning bars, save/load, and real export are deferred.
 
 SVG export remains clearly disabled and is not implemented in this phase.
 
@@ -128,4 +131,4 @@ The development server prints its local URL after `npm run dev`.
 
 ## Phase Boundary
 
-The current implementation is limited to the Phase 2C straight-road median opening, optional U-turn-specific pocket lane with storage and taper, drawing label visibility controls, and adjustable generated arrow markings. It does not include warning bars, signalized U-turns, intersections, slip lanes, roundabouts, a general auxiliary-lane framework, a full pavement-marking library, drag-and-drop, persistence, authentication, AI prompt-to-diagram, real SVG export, or CAD export.
+The current implementation is limited to the Phase 2D straight-road median opening, optional U-turn-specific pocket lane with storage and taper, drawing label visibility controls, selectable/draggable marking objects, and one manual through-arrow placement action. It does not include draggable lanes/median geometry, warning bars, signalized U-turns, intersections, slip lanes, roundabouts, a general auxiliary-lane framework, a full pavement-marking library, persistence, authentication, AI prompt-to-diagram, real SVG export, or CAD export.

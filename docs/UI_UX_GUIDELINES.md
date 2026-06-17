@@ -142,6 +142,8 @@ The selected marking should be edited in the right inspector.
 
 Phase 2C keeps marking adjustment deliberately simple: generated arrow markings can be selected in the inspector, hidden, nudged in X/Y meters, and scaled. This supports report cleanup without introducing drag-and-drop CAD editing or a full marking library.
 
+Phase 2D adds object-based editing for pavement markings only: generated and manual marking objects can be selected on the SVG canvas, dragged when unlocked, hidden, locked, and edited in the inspector. Lanes, medians, U-turn openings, and pockets remain parameter-driven and are not draggable canvas objects.
+
 ## Validation UX
 
 Validation must guide rather than interrupt.

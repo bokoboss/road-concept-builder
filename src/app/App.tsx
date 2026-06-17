@@ -4,25 +4,32 @@ import { RightInspector } from '../components/RightInspector'
 import { StraightRoadPreview } from '../components/StraightRoadPreview'
 import { TopBar } from '../components/TopBar'
 import {
-  defaultDrawingViewOptions,
-  defaultStraightRoadParameters,
   phase1DrawingSettings,
 } from '../domain/straightRoad'
+import {
+  createDefaultProjectDocument,
+  placeManualMarking,
+  selectCanvasObject,
+  updateCanvasObjectPosition,
+} from '../domain/projectDocument'
 import { validateStraightRoad } from '../validation/validateStraightRoad'
 
 export function App() {
-  const [parameters, setParameters] = useState(defaultStraightRoadParameters)
-  const [viewOptions, setViewOptions] = useState(defaultDrawingViewOptions)
+  const [document, setDocument] = useState(createDefaultProjectDocument)
   const issues = useMemo(
-    () => validateStraightRoad(parameters, phase1DrawingSettings),
-    [parameters],
+    () => validateStraightRoad(document.parametricRoad, phase1DrawingSettings),
+    [document.parametricRoad],
   )
 
   return (
     <div className="app-shell">
       <TopBar issueCount={issues.length} />
       <main className="workspace">
-        <LeftPalette />
+        <LeftPalette
+          onAddManualThroughArrow={() =>
+            setDocument((current) => placeManualMarking(current, 'through-arrow'))
+          }
+        />
         <section className="canvas-panel" aria-label="Parametric road concept preview">
           <div className="canvas-heading">
             <div>
@@ -38,9 +45,15 @@ export function App() {
 
           <div className="canvas-stage">
             <StraightRoadPreview
-              parameters={parameters}
+              parameters={document.parametricRoad}
               settings={phase1DrawingSettings}
-              viewOptions={viewOptions}
+              viewOptions={document.viewOptions}
+              canvasObjects={document.canvasObjects}
+              selectedObjectId={document.selectedObjectId}
+              onSelectObject={(id) => setDocument((current) => selectCanvasObject(current, id))}
+              onMoveObject={(id, x, y) =>
+                setDocument((current) => updateCanvasObjectPosition(current, id, x, y))
+              }
             />
           </div>
 
@@ -50,11 +63,9 @@ export function App() {
           </div>
         </section>
         <RightInspector
-          parameters={parameters}
-          viewOptions={viewOptions}
+          document={document}
           issues={issues}
-          onChange={setParameters}
-          onViewOptionsChange={setViewOptions}
+          onDocumentChange={setDocument}
         />
       </main>
     </div>

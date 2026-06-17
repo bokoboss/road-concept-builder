@@ -163,6 +163,23 @@ These markings:
 
 This phase does not add a general marking library, warning bars, text markings, stop lines, freehand drawing, drag-and-drop editing, save/load, or real export.
 
+### Phase 2D Object-Based Canvas Foundation
+
+Phase 2D moves the generated arrow overlays into the app's shared canvas-object document model and adds one manual marking placement action.
+
+These markings:
+
+- share `id`, `type`, `source`, `layer`, `x`, `y`, `rotationDeg`, `scale`, `visible`, `locked`, and `zIndex` fields;
+- use `source: 'generated'` for geometry-derived arrows and `source: 'manual'` for palette-placed arrows;
+- remain in the `marking` layer;
+- can be selected directly on the SVG canvas;
+- can be dragged when unlocked;
+- can be hidden, locked, moved, rotated, scaled, and reordered from the inspector;
+- do not change lane, median, U-turn, or pocket geometry;
+- do not affect validation.
+
+Manual placement is deliberately limited to one schematic through-arrow object with `CUSTOM_CONCEPT` source status. Full marking libraries, target-aware stop lines, warning bars, save/load, export, and CAD-style editing remain later work.
+
 ### Lane Arrow
 
 When the user selects a lane and adds a lane arrow:
@@ -313,6 +330,8 @@ For a selected marking, show only relevant fields.
 - rotation mode.
 
 Phase 2C exposes only the controls needed for generated arrow markings: selected marking, visible, X nudge, Y nudge, and scale.
+
+Phase 2D exposes the selected canvas object's source, source status, visible, locked, X/Y position, rotation, scale, and z-index. Locked objects remain selectable but cannot be dragged or position-edited until unlocked.
 
 ### Stop Line Inspector
 

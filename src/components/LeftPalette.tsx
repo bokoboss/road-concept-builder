@@ -3,11 +3,13 @@ type PaletteItemProps = {
   title: string
   detail: string
   selected?: boolean
+  onActivate?: () => void
 }
 
-function PaletteItem({ icon, title, detail, selected = false }: PaletteItemProps) {
-  return (
-    <div className={`palette-item${selected ? ' is-selected' : ''}`}>
+function PaletteItem({ icon, title, detail, selected = false, onActivate }: PaletteItemProps) {
+  const className = `palette-item${selected ? ' is-selected' : ''}`
+  const content = (
+    <>
       <span className="palette-icon" aria-hidden="true">
         {icon}
       </span>
@@ -15,6 +17,20 @@ function PaletteItem({ icon, title, detail, selected = false }: PaletteItemProps
         <strong>{title}</strong>
         <small>{detail}</small>
       </span>
+    </>
+  )
+
+  if (onActivate) {
+    return (
+      <button className={className} type="button" onClick={onActivate}>
+        {content}
+      </button>
+    )
+  }
+
+  return (
+    <div className={className}>
+      {content}
     </div>
   )
 }
@@ -37,7 +53,11 @@ function PaletteSection({
   )
 }
 
-export function LeftPalette() {
+export function LeftPalette({
+  onAddManualThroughArrow,
+}: {
+  onAddManualThroughArrow?: () => void
+}) {
   return (
     <aside className="left-panel">
       <div className="panel-intro">
@@ -57,6 +77,12 @@ export function LeftPalette() {
 
       <PaletteSection title="Pavement Markings">
         <PaletteItem icon="AR" title="Lane-use arrows" detail="Through and turn" />
+        <PaletteItem
+          icon="+AR"
+          title="Manual through arrow"
+          detail="Place editable marking"
+          onActivate={onAddManualThroughArrow}
+        />
         <PaletteItem icon="SL" title="Stop line" detail="Transverse line" />
         <PaletteItem icon="WB" title="Warning bars" detail="Project assumption" />
       </PaletteSection>

@@ -1,4 +1,4 @@
-import { useMemo, useState, type ChangeEvent } from 'react'
+import { type ChangeEvent } from 'react'
 import {
   phase1DrawingSettings,
   phase1NumericLimits,
@@ -6,20 +6,24 @@ import {
   phase2UTurnNumericLimits,
   type DrawingViewOptions,
   type MedianType,
-  type PavementMarkingAdjustment,
   type StraightRoadParameters,
   type UTurnDirection,
 } from '../domain/straightRoad'
-import { buildStraightRoadGeometry } from '../geometry/straightRoadGeometry'
+import {
+  selectCanvasObject,
+  syncGeneratedCanvasObjects,
+  updateCanvasObject,
+  updateParametricRoad,
+  type CanvasObject,
+  type ProjectDocument,
+} from '../domain/projectDocument'
 import type { ValidationIssue } from '../validation/validateStraightRoad'
 import { ValidationPanel } from './ValidationPanel'
 
 type RightInspectorProps = {
-  parameters: StraightRoadParameters
-  viewOptions: DrawingViewOptions
+  document: ProjectDocument
   issues: ValidationIssue[]
-  onChange: (parameters: StraightRoadParameters) => void
-  onViewOptionsChange: (viewOptions: DrawingViewOptions) => void
+  onDocumentChange: (document: ProjectDocument) => void
 }
 
 function NumberField({
@@ -59,79 +63,66 @@ function NumberField({
   )
 }
 
-function markingLabel(id: string) {
-  return id
+function markingLabel(object: CanvasObject) {
+  const source = object.source === 'manual' ? 'Manual' : 'Generated'
+  const label = object.id
     .replaceAll('-', ' ')
     .replace(/\b\w/g, (match) => match.toUpperCase())
-}
 
-function adjustmentFor(
-  parameters: StraightRoadParameters,
-  id: string,
-): PavementMarkingAdjustment {
-  return {
-    offsetXMeters: parameters.markingAdjustments[id]?.offsetXMeters ?? 0,
-    offsetYMeters: parameters.markingAdjustments[id]?.offsetYMeters ?? 0,
-    visible: parameters.markingAdjustments[id]?.visible ?? true,
-    scale: parameters.markingAdjustments[id]?.scale ?? 1,
-  }
+  return `${source}: ${label}`
 }
 
 export function RightInspector({
-  parameters,
-  viewOptions,
+  document,
   issues,
-  onChange,
-  onViewOptionsChange,
+  onDocumentChange,
 }: RightInspectorProps) {
-  const geometry = useMemo(
-    () => buildStraightRoadGeometry(parameters, phase1DrawingSettings),
-    [parameters],
-  )
-  const generatedMarkings = geometry.pavementMarkings.filter(
-    (marking) => marking.source === 'generated',
-  )
-  const [selectedMarkingId, setSelectedMarkingId] = useState('')
-  const activeMarking =
-    generatedMarkings.find((marking) => marking.id === selectedMarkingId) ?? generatedMarkings[0]
-  const activeAdjustment = activeMarking ? adjustmentFor(parameters, activeMarking.id) : null
+  const parameters = document.parametricRoad
+  const viewOptions = document.viewOptions
+  const markingObjects = document.canvasObjects.filter((object) => object.layer === 'marking')
+  const selectedObject =
+    markingObjects.find((object) => object.id === document.selectedObjectId) ?? null
 
-  const update = <Key extends keyof StraightRoadParameters>(
+  const updateRoad = <Key extends keyof StraightRoadParameters>(
     key: Key,
     value: StraightRoadParameters[Key],
-  ) => onChange({ ...parameters, [key]: value })
+  ) => onDocumentChange(updateParametricRoad(document, { [key]: value }))
   const updateViewOption = <Key extends keyof DrawingViewOptions>(
     key: Key,
     value: DrawingViewOptions[Key],
-  ) => onViewOptionsChange({ ...viewOptions, [key]: value })
-  const updateMarkingAdjustment = (
-    id: string,
-    values: Partial<PavementMarkingAdjustment>,
-  ) => {
-    const current = adjustmentFor(parameters, id)
-    onChange({
-      ...parameters,
-      markingAdjustments: {
-        ...parameters.markingAdjustments,
-        [id]: { ...current, ...values },
-      },
-    })
+  ) => onDocumentChange({ ...document, viewOptions: { ...viewOptions, [key]: value } })
+  const updateObject = (id: string, values: Partial<CanvasObject>) => {
+    onDocumentChange(updateCanvasObject(document, id, values))
   }
   const updateUTurn = <Key extends keyof StraightRoadParameters['uTurn']>(
     key: Key,
     value: StraightRoadParameters['uTurn'][Key],
-  ) => onChange({ ...parameters, uTurn: { ...parameters.uTurn, [key]: value } })
+  ) =>
+    onDocumentChange(
+      syncGeneratedCanvasObjects({
+        ...document,
+        parametricRoad: {
+          ...parameters,
+          uTurn: { ...parameters.uTurn, [key]: value },
+        },
+      }),
+    )
   const updateUTurnPocket = <Key extends keyof StraightRoadParameters['uTurn']['pocket']>(
     key: Key,
     value: StraightRoadParameters['uTurn']['pocket'][Key],
   ) =>
-    onChange({
-      ...parameters,
-      uTurn: {
-        ...parameters.uTurn,
-        pocket: { ...parameters.uTurn.pocket, [key]: value },
-      },
-    })
+    onDocumentChange(
+      syncGeneratedCanvasObjects({
+        ...document,
+        parametricRoad: {
+          ...parameters,
+          uTurn: {
+            ...parameters.uTurn,
+            pocket: { ...parameters.uTurn.pocket, [key]: value },
+          },
+        },
+      }),
+    )
 
   return (
     <aside className="right-panel">
@@ -155,14 +146,14 @@ export function RightInspector({
             value={parameters.eastboundLaneCount}
             min={0}
             max={phase1DrawingSettings.maxLaneCountPerDirection}
-            onChange={(value) => update('eastboundLaneCount', value)}
+            onChange={(value) => updateRoad('eastboundLaneCount', value)}
           />
           <NumberField
             label="Westbound lanes"
             value={parameters.westboundLaneCount}
             min={0}
             max={phase1DrawingSettings.maxLaneCountPerDirection}
-            onChange={(value) => update('westboundLaneCount', value)}
+            onChange={(value) => updateRoad('westboundLaneCount', value)}
           />
           <NumberField
             label="Lane width (m)"
@@ -170,7 +161,7 @@ export function RightInspector({
             step={0.1}
             min={phase1NumericLimits.laneWidthMeters.min}
             max={phase1NumericLimits.laneWidthMeters.max}
-            onChange={(value) => update('laneWidthMeters', value)}
+            onChange={(value) => updateRoad('laneWidthMeters', value)}
           />
         </div>
 
@@ -182,13 +173,13 @@ export function RightInspector({
             step={0.1}
             min={phase1NumericLimits.shoulderWidthMeters.min}
             max={phase1NumericLimits.shoulderWidthMeters.max}
-            onChange={(value) => update('shoulderWidthMeters', value)}
+            onChange={(value) => updateRoad('shoulderWidthMeters', value)}
           />
           <label className="inspector-field">
             <span>Median type</span>
             <select
               value={parameters.medianType}
-              onChange={(event) => update('medianType', event.target.value as MedianType)}
+              onChange={(event) => updateRoad('medianType', event.target.value as MedianType)}
             >
               <option value="none">None</option>
               <option value="painted">Painted</option>
@@ -202,7 +193,7 @@ export function RightInspector({
             min={phase1NumericLimits.medianWidthMeters.min}
             max={phase1NumericLimits.medianWidthMeters.max}
             disabled={parameters.medianType === 'none'}
-            onChange={(value) => update('medianWidthMeters', value)}
+            onChange={(value) => updateRoad('medianWidthMeters', value)}
           />
         </div>
 
@@ -251,63 +242,93 @@ export function RightInspector({
             <input
               type="checkbox"
               checked={parameters.showLaneArrows}
-              onChange={(event) => update('showLaneArrows', event.target.checked)}
+              onChange={(event) => updateRoad('showLaneArrows', event.target.checked)}
             />
           </label>
           <label className="inspector-field">
             <span>Selected marking</span>
             <select
-              value={activeMarking?.id ?? ''}
-              disabled={generatedMarkings.length === 0}
-              onChange={(event) => setSelectedMarkingId(event.target.value)}
+              value={selectedObject?.id ?? ''}
+              disabled={markingObjects.length === 0}
+              onChange={(event) =>
+                onDocumentChange(selectCanvasObject(document, event.target.value || null))
+              }
             >
-              {generatedMarkings.length === 0 ? (
-                <option value="">No generated markings</option>
-              ) : (
-                generatedMarkings.map((marking) => (
-                  <option key={marking.id} value={marking.id}>
-                    {markingLabel(marking.id)}
-                  </option>
-                ))
-              )}
+              <option value="">No object selected</option>
+              {markingObjects.map((object) => (
+                <option key={object.id} value={object.id}>
+                  {markingLabel(object)}
+                </option>
+              ))}
             </select>
           </label>
-          {activeMarking && activeAdjustment && (
+          {selectedObject && (
             <div className="inspector-subgroup">
               <h4>Marking position</h4>
+              <div className="inspector-row">
+                <span>Source</span>
+                <strong>{selectedObject.source}</strong>
+              </div>
+              <div className="inspector-row">
+                <span>Source status</span>
+                <strong>{selectedObject.sourceStatus}</strong>
+              </div>
               <label className="inspector-field checkbox-field">
                 <span>Visible</span>
                 <input
                   type="checkbox"
-                  checked={activeAdjustment.visible}
+                  checked={selectedObject.visible}
                   onChange={(event) =>
-                    updateMarkingAdjustment(activeMarking.id, { visible: event.target.checked })
+                    updateObject(selectedObject.id, { visible: event.target.checked })
+                  }
+                />
+              </label>
+              <label className="inspector-field checkbox-field">
+                <span>Locked</span>
+                <input
+                  type="checkbox"
+                  checked={selectedObject.locked}
+                  onChange={(event) =>
+                    updateObject(selectedObject.id, { locked: event.target.checked })
                   }
                 />
               </label>
               <NumberField
                 label="Nudge X (m)"
-                value={activeAdjustment.offsetXMeters}
+                value={selectedObject.x}
                 step={0.25}
-                onChange={(value) =>
-                  updateMarkingAdjustment(activeMarking.id, { offsetXMeters: value })
-                }
+                disabled={selectedObject.locked}
+                onChange={(value) => updateObject(selectedObject.id, { x: value })}
               />
               <NumberField
                 label="Nudge Y (m)"
-                value={activeAdjustment.offsetYMeters}
+                value={selectedObject.y}
                 step={0.25}
-                onChange={(value) =>
-                  updateMarkingAdjustment(activeMarking.id, { offsetYMeters: value })
-                }
+                disabled={selectedObject.locked}
+                onChange={(value) => updateObject(selectedObject.id, { y: value })}
+              />
+              <NumberField
+                label="Rotation (deg)"
+                value={selectedObject.rotationDeg}
+                step={5}
+                disabled={selectedObject.locked}
+                onChange={(value) => updateObject(selectedObject.id, { rotationDeg: value })}
               />
               <NumberField
                 label="Scale"
-                value={activeAdjustment.scale}
+                value={selectedObject.scale}
                 step={0.1}
                 min={0.4}
                 max={2}
-                onChange={(value) => updateMarkingAdjustment(activeMarking.id, { scale: value })}
+                disabled={selectedObject.locked}
+                onChange={(value) => updateObject(selectedObject.id, { scale: value })}
+              />
+              <NumberField
+                label="Z index"
+                value={selectedObject.zIndex}
+                step={1}
+                disabled={selectedObject.locked}
+                onChange={(value) => updateObject(selectedObject.id, { zIndex: value })}
               />
             </div>
           )}

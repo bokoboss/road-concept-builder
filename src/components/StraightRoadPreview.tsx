@@ -1,3 +1,4 @@
+import { useRef, useState } from 'react'
 import {
   defaultDrawingViewOptions,
   type DrawingViewOptions,
@@ -6,6 +7,7 @@ import {
   type Phase1DrawingSettings,
   type StraightRoadParameters,
 } from '../domain/straightRoad'
+import type { CanvasObject } from '../domain/projectDocument'
 import {
   buildStraightRoadGeometry,
   type PolygonGeometry,
@@ -121,18 +123,41 @@ function PavementMarking({
   marking,
   roadTop,
   px,
+  selected = false,
+  onPointerDown,
 }: {
-  marking: ReturnType<typeof buildStraightRoadGeometry>['pavementMarkings'][number]
+  marking: Pick<
+    CanvasObject,
+    | 'id'
+    | 'type'
+    | 'x'
+    | 'y'
+    | 'rotationDeg'
+    | 'scale'
+    | 'direction'
+    | 'targetY'
+    | 'locked'
+  >
   roadTop: number
   px: (value: number) => number
+  selected?: boolean
+  onPointerDown?: React.PointerEventHandler<SVGGElement>
 }) {
   const x = ROAD_X + px(marking.x)
   const y = roadTop + px(marking.y)
   const targetY = marking.targetY === undefined ? undefined : roadTop + px(marking.targetY)
+  const className = `canvas-object${selected ? ' is-selected' : ''}${marking.locked ? ' is-locked' : ''}`
 
   if (marking.type === 'through-arrow') {
     return (
-      <g data-testid={marking.id} data-marking-type={marking.type}>
+      <g
+        className={className}
+        data-testid={marking.id}
+        data-marking-type={marking.type}
+        data-locked={marking.locked}
+        onPointerDown={onPointerDown}
+      >
+        {selected && <circle className="selection-ring" cx={x} cy={y} r={24 * marking.scale} />}
         <ThroughArrow x={x} y={y} rotate={marking.rotationDeg} scale={marking.scale} />
       </g>
     )
@@ -141,14 +166,21 @@ function PavementMarking({
   if (targetY === undefined) return null
 
   return (
-    <UTurnArrow
-      testId={marking.id}
-      x={x}
-      y={y}
-      targetY={targetY}
-      direction={marking.direction as 'eastbound-to-westbound' | 'westbound-to-eastbound'}
-      scale={marking.scale}
-    />
+    <g
+      className={className}
+      data-locked={marking.locked}
+      onPointerDown={onPointerDown}
+    >
+      {selected && <circle className="selection-ring" cx={x} cy={y} r={28 * marking.scale} />}
+      <UTurnArrow
+        testId={marking.id}
+        x={x}
+        y={y}
+        targetY={targetY}
+        direction={marking.direction as 'eastbound-to-westbound' | 'westbound-to-eastbound'}
+        scale={marking.scale}
+      />
+    </g>
   )
 }
 
@@ -180,11 +212,25 @@ export function StraightRoadPreview({
   parameters,
   settings,
   viewOptions = defaultDrawingViewOptions,
+  canvasObjects,
+  selectedObjectId = null,
+  onSelectObject,
+  onMoveObject,
 }: {
   parameters: StraightRoadParameters
   settings: Phase1DrawingSettings
   viewOptions?: DrawingViewOptions
+  canvasObjects?: CanvasObject[]
+  selectedObjectId?: string | null
+  onSelectObject?: (id: string | null) => void
+  onMoveObject?: (id: string, x: number, y: number) => void
 }) {
+  const svgRef = useRef<SVGSVGElement | null>(null)
+  const [dragState, setDragState] = useState<{
+    id: string
+    offsetXMeters: number
+    offsetYMeters: number
+  } | null>(null)
   const safeSettings = sanitizePhase1DrawingSettings(settings)
   const geometry = buildStraightRoadGeometry(parameters, safeSettings)
   const renderPxPerMeter = Math.min(
@@ -203,13 +249,65 @@ export function StraightRoadPreview({
   const showLabels = viewOptions.showLabels
   const showLaneLabels = showLabels && viewOptions.showLaneLabels
   const showFeatureLabels = showLabels && viewOptions.showFeatureLabels
+  const markings = canvasObjects ?? geometry.pavementMarkings.map((marking) => ({
+    ...marking,
+    locked: false,
+    layer: 'marking' as const,
+    zIndex: 0,
+  }))
+  const visibleMarkings = markings
+    .filter((marking) => marking.layer === 'marking' && marking.visible)
+    .sort((left, right) => left.zIndex - right.zIndex)
+
+  const eventToMeters = (event: React.PointerEvent<SVGSVGElement | SVGGElement>) => {
+    const svg = svgRef.current
+    if (!svg) return null
+    const bounds = svg.getBoundingClientRect()
+    const svgX = ((event.clientX - bounds.left) / bounds.width) * 1000
+    const svgY = ((event.clientY - bounds.top) / bounds.height) * 600
+
+    return {
+      x: (svgX - ROAD_X) / renderPxPerMeter,
+      y: (svgY - roadTop) / renderPxPerMeter,
+    }
+  }
+  const startDrag = (marking: CanvasObject) => (event: React.PointerEvent<SVGGElement>) => {
+    event.stopPropagation()
+    onSelectObject?.(marking.id)
+    if (marking.locked) return
+    const point = eventToMeters(event)
+    if (!point) return
+    event.currentTarget.setPointerCapture(event.pointerId)
+    setDragState({
+      id: marking.id,
+      offsetXMeters: marking.x - point.x,
+      offsetYMeters: marking.y - point.y,
+    })
+  }
+  const moveDrag = (event: React.PointerEvent<SVGSVGElement>) => {
+    if (!dragState) return
+    const point = eventToMeters(event)
+    if (!point) return
+    onMoveObject?.(
+      dragState.id,
+      point.x + dragState.offsetXMeters,
+      point.y + dragState.offsetYMeters,
+    )
+  }
+  const endDrag = () => setDragState(null)
 
   return (
     <svg
+      ref={svgRef}
       className="road-preview"
       viewBox="0 0 1000 600"
       role="img"
       aria-labelledby="road-preview-title road-preview-description"
+      onPointerMove={moveDrag}
+      onPointerUp={endDrag}
+      onPointerCancel={endDrag}
+      onPointerLeave={endDrag}
+      onPointerDown={() => onSelectObject?.(null)}
     >
       <title id="road-preview-title">Parametric straight road segment</title>
       <desc id="road-preview-description">{operationDescription(geometry.operationMode)}</desc>
@@ -351,14 +449,15 @@ export function StraightRoadPreview({
             />
           ))}
           {viewOptions.showPavementMarkings &&
-            geometry.pavementMarkings
-              .filter((marking) => marking.visible)
+            visibleMarkings
               .map((marking) => (
                 <PavementMarking
                   key={marking.id}
                   marking={marking}
                   roadTop={roadTop}
                   px={px}
+                  selected={marking.id === selectedObjectId}
+                  onPointerDown={startDrag(marking)}
                 />
               ))}
 

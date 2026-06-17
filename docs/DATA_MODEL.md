@@ -73,6 +73,57 @@ Default:
 }
 ```
 
+### Phase 2D Project Document
+
+Phase 2D introduces a small document wrapper around the existing parametric road model:
+
+```ts
+type ProjectDocument = {
+  parametricRoad: StraightRoadParameters;
+  canvasObjects: CanvasObject[];
+  viewOptions: DrawingViewOptions;
+  selectedObjectId: string | null;
+};
+```
+
+`parametricRoad` remains the source for lane, median, U-turn opening, pocket geometry, and validation. `canvasObjects` holds editable overlay objects such as generated and manual pavement markings. `viewOptions` controls drawing display only. `selectedObjectId` is UI state for the active canvas object.
+
+The current document is React state only. Project JSON save/load remains a later phase.
+
+### Canvas Object
+
+Phase 2D uses a common canvas object shape for editable overlay items:
+
+```ts
+type CanvasObject = {
+  id: string;
+  type: string;
+  source: 'generated' | 'manual';
+  layer: 'marking' | 'label' | 'symbol';
+  x: number;
+  y: number;
+  rotationDeg: number;
+  scale: number;
+  visible: boolean;
+  locked: boolean;
+  zIndex: number;
+};
+```
+
+The implemented object subtype is a marking object:
+
+```ts
+type MarkingCanvasObject = CanvasObject & {
+  layer: 'marking';
+  type: 'through-arrow' | 'u-turn-arrow' | 'pocket-u-turn-arrow';
+  sourceStatus: SourceStatus;
+  direction?: 'eastbound' | 'westbound' | UTurnDirection;
+  targetY?: number;
+};
+```
+
+Generated marking canvas objects are synchronized from the existing straight-road geometry. Manual placement currently supports one through-arrow action from the left palette. Object movement does not affect road validation.
+
 The current Phase 1 implementation uses a minimal fixed drawing-settings object for preview scale, segment length, and bounded lane generation. It sanitizes invalid settings to safe defaults, applies an absolute geometry cap of 16 lanes per direction, and clamps the straight-road SVG preview extent to 500 m. The 500 m value is only a Phase 1 straight-road preview/rendering safeguard. It is not a Thai standard, a road-design limit, or a future intersection limit. Future intersection modules should define their own preview extent settings, such as `approachLengthMeters`. Phase 1 does not expose a drawing-settings UI.
 
 ### Road Elements

@@ -230,4 +230,12 @@ Phase 2C:
 - generated U-turn and pocket U-turn arrows as pavement marking overlays;
 - inspector-based marking visibility, nudge, and scale controls.
 
+Phase 2D:
+
+- project document state with parametric road parameters, canvas objects, view options, and selected object id;
+- generated arrow markings as selectable canvas objects;
+- one manual through-arrow marking placement action;
+- selected marking visibility, lock, position, rotation, scale, and z-index controls;
+- SVG drag movement for visible, unlocked marking objects.
+
 Warning bars remain deferred to a later pavement marking or polish phase.
