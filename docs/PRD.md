@@ -1,232 +1,280 @@
-# Product Requirements Document (PRD)
+# Product Requirements Document — Rebaseline v0.1
 
-## Product Name
+## Product name
 
-Road Concept Builder
+Working name: **Road Concept Builder**.
 
-## Product Vision
+The name may change later without affecting architecture.
 
-Create a lightweight, clean, practical 2D plan-view road concept diagram builder for traffic engineers who need to produce presentation-ready road layout graphics quickly.
+## Product vision
 
-The product should support Thai left-hand-traffic conditions and common traffic engineering scenarios such as road segments, U-turn openings, intersections, pocket lanes, free-left slip lanes, roundabouts, access layouts, and pavement markings.
+Create a standalone, map-first street and intersection concept design environment for traffic engineers and transport planners.
 
-## Problem Statement
+The product should let a user move from a real location or imported plan to an engineering-aware 2D concept, synchronized 3D visualization, alternatives, and presentation-ready outputs without requiring CAD-level drafting, Illustrator, Blender, or manual asset production.
 
-Traffic engineers often need to explain roadway improvements using diagrams, but existing tools have limitations:
+## Problem statement
 
-- CAD tools are powerful but too slow for quick concept communication;
-- generic drawing tools lack traffic engineering logic;
-- simulation tools can be awkward for report graphics;
-- web tools like Streetmix are useful for sections but do not cover plan-view traffic layouts and Thai-style pavement marking needs.
+Traffic engineers frequently need to communicate roadway concepts such as:
+- project accesses;
+- turn pockets;
+- median openings/U-turn treatments;
+- intersection improvements;
+- road widening;
+- bus bays;
+- parking/bike/sidewalk/street components;
+- Existing vs Proposed alternatives.
 
-Road Concept Builder should fill this gap.
+Existing workflows have gaps:
+- CAD/highway-design tools are powerful but heavy for fast concept iteration;
+- generic illustration tools lack road/lane/junction semantics;
+- cross-section tools do not adequately handle plan-view intersections and longitudinal transitions;
+- presentation-focused 3D tools may look convincing without maintaining engineering structure;
+- manual 2D/3D asset production requires skills/tools that should not be prerequisites for this product.
 
-## Target Users
+Road Concept Builder should occupy the gap between lightweight visual street tools and detailed civil-design platforms.
 
-Primary users:
+## Target users
 
+Primary:
 - traffic engineers;
 - transport planners;
 - TIA consultants;
-- road safety analysts;
-- engineers preparing presentations for public agencies or developers.
+- road/intersection concept designers.
 
-Secondary users:
-
+Secondary:
+- highway/urban designers during early concept stages;
+- road-safety analysts;
 - project managers;
-- highway/urban designers who need early-stage concept visuals;
-- non-technical stakeholders reviewing alternatives.
+- public-agency/developer stakeholders reviewing alternatives.
 
-## Core Product Positioning
+## Product positioning
 
-This product is:
+The product is:
+- map first;
+- plan-authoring first;
+- semantic/engineering aware;
+- metric native;
+- Thailand/LHT first;
+- synchronized 2D/3D;
+- scenario/alternative oriented;
+- automation assisted;
+- presentation capable;
+- AI-command ready.
 
-- template-first;
-- parameter-driven;
-- live-preview;
-- SVG-based;
-- Thai-oriented;
-- concept/schematic focused;
-- report and presentation oriented.
+The product is not initially:
+- a construction drawing package;
+- a detailed highway corridor/grading tool;
+- a cut/fill/earthworks system;
+- a drainage-design package;
+- BIM authoring software;
+- a full traffic simulator;
+- a signal-timing optimizer;
+- a full swept-path replacement;
+- a cloud collaboration platform.
 
-This product is not:
+## Core requirements
 
-- a CAD replacement;
-- a construction drawing tool;
-- a road design compliance engine;
-- a traffic simulator;
-- a swept-path analysis tool;
-- a signal timing tool;
-- an AI image generator.
+### 1. Project/reference context
 
-## Core Workflow
+Must ultimately support:
+- blank/local project;
+- online map/street basemap;
+- satellite/aerial reference where licensing permits;
+- imported JPG/PNG/site plan;
+- scale calibration for un-georeferenced images;
+- optional real CRS/georeference;
+- local rendering origin for numeric stability;
+- reference-layer visibility/lock/opacity/dim controls.
 
-```text
-Choose situation/template -> configure geometry -> add pavement markings -> validate -> export
-```
+### 2. Road model
 
-## Major Feature Areas
+Road source of truth must use:
+- generalized reference alignment;
+- stationing;
+- ordered semantic cross-section components;
+- station-based component/lane lifecycle and width profiles.
 
-### 1. Road Segment Builder
+Required conceptual capabilities include:
+- straight/curved roads;
+- lane-count and width changes;
+- median/shoulder/sidewalk/verge/bike/parking components;
+- taper;
+- widening/narrowing;
+- lane add/drop;
+- turn pocket;
+- median width transition.
 
-Must eventually support:
+Presets/configurations instantiate editable components and must not remain opaque graphic templates.
 
-- one-way/two-way roads;
-- forward lane count;
-- opposing lane count;
-- shoulders;
-- curb/edge conditions;
-- median types;
-- lane markings;
-- arrows;
-- lane additions and drops;
-- U-turn openings.
+### 3. Junction/network model
 
-### 2. U-turn / Median Opening Builder
+Junctions must be first-class semantic objects.
 
-Must eventually support:
+Required direction:
+- T and four-leg intersections first;
+- skewed geometry;
+- divided/undivided combinations;
+- per-corner geometry/radius;
+- approaches;
+- explicit lane-to-lane connectivity/movements;
+- islands/medians/openings;
+- crossings;
+- stop/yield lines.
 
-- median opening only;
-- U-turn pocket lane;
-- storage length;
-- taper length;
-- U-turn arrow;
-- warning bars or guide markings;
-- validation if no median exists.
+A visual/geometric crossing must create a **candidate junction**, not automatic topology.
 
-### 3. Intersection Builder
+### 4. 2D / 3D views
 
-Must eventually support:
+The same canonical engineering model must drive:
+- 2D plan;
+- contextual cross section;
+- synchronized 3D.
 
-- T-intersection;
-- four-leg intersection;
-- skewed intersection later;
-- inbound/outbound lanes by approach;
-- lane movements;
-- stop line;
-- give-way line;
-- crosswalk;
-- signal/no signal;
-- left/right pocket lanes;
-- free-left slip lane;
-- channelizing islands.
+2D is the primary engineering authoring environment.
 
-### 4. Pavement Marking System
+3D initially focuses on inspect/present and limited direct manipulation, not Blender-style modelling.
 
-Pavement marking is a core system.
+### 5. Scenarios/alternatives
 
-Must support lane/approach/area-based smart placement for:
+Scenarios are core product state.
 
-- lane direction arrows;
-- U-turn arrows;
-- stop lines;
-- give-way lines;
-- crosswalks;
-- lane lines and edge lines;
-- hatch/painted islands;
-- transverse warning bars;
-- simple text markings.
+Must support an architecture for:
+- Existing;
+- Alternative A/B/etc.;
+- duplicate/new alternative;
+- scenario visibility/selection;
+- overlay comparison;
+- later side-by-side/before-after/change summary.
 
-### 5. Validation System
+### 6. Markings and traffic-control assets
 
-Validation should be advisory and non-blocking unless geometry is impossible.
-
-Examples:
-
-- signalized approach without stop line;
-- yield slip lane without give-way line;
-- U-turn pocket without U-turn arrow;
-- lane drop without taper;
-- marking target no longer exists.
-
-### 6. Export
-
-MVP:
-
-- SVG export.
-
-Next:
-
-- PNG export;
-- transparent PNG;
-- copy to clipboard;
-- project JSON save/load.
-
-## UX Requirements
-
-The UI should be clean, calm, simple, and engineering-oriented.
-
-The user should not need to manually draw every lane line or symbol.
-
-Live preview is mandatory.
-
-First-time user target:
-
-> Create a basic 4-lane divided road diagram within 60 seconds.
-
-## MVP Scope
-
-### Phase 0 MVP
-
-Static app shell and static SVG preview:
-
-- top bar;
-- left template/component/marking panel;
-- center SVG canvas;
-- right inspector;
-- validation panel;
-- static road sample with markings.
-
-### Phase 1 MVP
-
-Straight road segment generator:
-
-- eastbound/westbound lane count;
-- two-way and one-way straight road preview;
-- shoulder width;
-- median type and width;
+Engineering-sensitive markings should be procedural/semantic where practical:
 - lane/edge lines;
-- direction arrows;
-- non-blocking parameter validation;
-- geometry tests.
+- solid/dashed/double lines;
+- stop/yield lines;
+- arrows/stencils;
+- crosswalks;
+- hatch/chevrons;
+- parking/bike/motorcycle markings.
 
-SVG export is deferred beyond the current Phase 1 implementation.
+Signs/signals/lights should use semantic assemblies rather than being only decorative meshes.
 
-The Phase 1 straight-road SVG preview uses a module-specific 500 m rendering extent cap to keep SVG coordinates finite. This safeguard is not a Thai standard, a road-design limit, or a future intersection limit. Future intersection modules should use their own preview extent settings, such as `approachLengthMeters`.
+### 7. Presentation/context assets
 
-## MVP Exclusions
+Library should eventually cover:
+- common vehicles;
+- motorcycles;
+- buses/coaches;
+- trucks;
+- trees/landscape;
+- people;
+- simple buildings;
+- street furniture.
 
-Do not implement in MVP:
+Each reusable asset should support machine-readable source/license metadata. A semantic asset may have both 2D and 3D representations.
 
-- login;
-- database;
-- cloud sync;
-- 3D;
-- simulation;
-- signal timing;
-- swept path;
-- DXF/DWG export;
-- full drag-and-drop CAD editing;
-- all Thai standard dimensions;
-- full sign library;
-- mobile-first UI.
+The normal user workflow must not require manual SVG/GLB creation.
 
-## Standards Policy
+### 8. Standards and validation
 
-Thai standards and international best practices should be documented and source-tagged.
+Validation is advisory unless geometry is impossible or internally inconsistent.
 
-Unverified defaults must not be presented as official standards.
+Requirements:
+- Thailand-first source hierarchy;
+- explicit authority/document/version provenance;
+- unverified/project assumptions clearly distinguished from official standards;
+- project can remain pinned to an explicit standards-profile version;
+- warning explanation should identify affected object and reference/source where applicable;
+- engineer may intentionally override advisory guidance.
 
-Each standard-sensitive component should have source status such as:
+### 9. AI-assisted authoring
 
-- `THAI_AUTHORITY`;
-- `AGENCY_MANUAL`;
-- `INTERNATIONAL_BEST_PRACTICE`;
-- `PROJECT_ASSUMPTION`;
-- `TODO_VERIFY`.
+AI is an alternate authoring interface, not a separate geometry engine.
 
-## Success Criteria
+Natural-language requests must be translated into typed semantic commands that use the same:
+- validation;
+- preview;
+- apply/cancel;
+- undo/redo;
+- dependency/regeneration path
+as manual operations.
 
-The first useful release should allow a user to create and export a clean road segment concept diagram with lane counts, median, shoulders, lane markings, arrows, and basic validation.
+AI must never mutate raw mesh/render/project JSON directly as a shortcut.
 
-The app should be useful even before intersections and roundabouts are implemented.
+### 10. Project state and persistence
+
+Canonical engineering state must remain independent from React/DOM/render nodes.
+
+Keep distinct concepts for:
+- canonical engineering state;
+- scenario state;
+- presentation state;
+- editor/session state.
+
+Project schema requires versioning/migration once the production model is established.
+
+## UX requirements
+
+Baseline interaction:
+- large viewport;
+- compact persistent panels;
+- Layers / Map / Library on the left;
+- contextual Properties/Validation/AI on the right;
+- small contextual bottom/tool area;
+- visible scenarios;
+- 2D / Split / 3D modes;
+- clear Select vs Hand/Pan/Orbit modes;
+- direct manipulation + exact numeric input;
+- progressive disclosure;
+- synchronized selection across views;
+- reliable undo/redo;
+- non-modal issue handling.
+
+See `docs/UX_ARCHITECTURE_V0_1.md`.
+
+## Engineering/geometry requirements
+
+Canonical geometry must satisfy documented invariants and deterministic regression tests.
+
+Do not accept a geometry feature based only on a visually plausible screenshot.
+
+Required qualification strategy includes, where applicable:
+- unit tests;
+- canonical/golden fixtures;
+- invariants;
+- deterministic repeated-run tests;
+- property/random tests;
+- fuzz tests for risky polygon/junction operations;
+- performance measurements.
+
+## Current implementation relationship
+
+The existing Phase 2E straight-road SVG implementation is a prototype and may be reused or replaced.
+
+Backward compatibility with prototype-only abstractions is **not a product requirement** unless real project data later demonstrates a migration need.
+
+Git history is the recoverable baseline.
+
+## First architecture gate
+
+Before production editor rewrite, complete `docs/STAGE_R1_GEOMETRY_SEMANTIC_SPIKE.md`.
+
+R1 must prove:
+- generalized alignment/stationing;
+- station-based variable-width components;
+- generic turn-pocket lifecycle;
+- candidate/connected T and four-leg junctions;
+- explicit lane connectivity;
+- shared derived 2D/3D geometry;
+- deterministic qualification evidence;
+- evidence-based TypeScript vs Rust/WASM kernel recommendation.
+
+## Success criteria
+
+Road Concept Builder succeeds when a traffic engineer can create a real-world roadway concept alternative materially faster than their current CAD/Illustrator/manual workflow while retaining:
+- engineering dimensions;
+- semantic road/lane/junction meaning;
+- alternative/scenario structure;
+- standards provenance;
+- editability;
+- clean 2D and 3D communication output.
