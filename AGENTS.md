@@ -8,14 +8,32 @@ The repository contains a working **Phase 2E prototype** built around a straight
 
 The project is being rebaselined under GitHub issue #1 toward a map-first, engineering-aware 2D/3D street and intersection concept designer.
 
-Before implementation, read:
-- `docs/REBASELINE_AUDIT_2026-08-25.md`;
+Before substantial implementation, read the documents relevant to the task. For R1 geometry work, the minimum authoritative set is:
 - `docs/PRODUCT_BASELINE_V0_1.md`;
-- `docs/UX_ARCHITECTURE_V0_1.md`;
-- `docs/ASSET_SYSTEM_V0_1.md`;
-- `docs/TECHNICAL_REBASELINE_V0_1.md`.
+- `docs/PRD.md`;
+- `docs/DECISIONS.md`;
+- `docs/TECHNICAL_REBASELINE_V0_1.md`;
+- `docs/DATA_MODEL.md`;
+- `docs/GEOMETRY_SCALE_POLICY.md`;
+- `docs/STAGE_R1_GEOMETRY_SEMANTIC_SPIKE.md`;
+- `docs/CODEX_R1_EXECUTION_PACKET.md`;
+- `docs/DEVELOPMENT_OPERATING_MODEL_V0_1.md`;
+- `docs/REBASELINE_AUDIT_2026-08-25.md`;
+- `docs/PHASE2E_CODE_REUSE_MATRIX.md`.
 
-Older PRD/roadmap/UX documents remain useful historical/prototype context but must not override the rebaseline documents above when they conflict.
+For UX/editor work also read:
+- `docs/UX_ARCHITECTURE_V0_1.md`;
+- `docs/UI_UX_GUIDELINES.md`;
+- `docs/TOOL_TAXONOMY_V0_1.md`;
+- `docs/VISUAL_DESIGN_SYSTEM_V0_1.md`.
+
+For assets/Thailand-profile work also read:
+- `docs/ASSET_SYSTEM_V0_1.md`;
+- `docs/ASSET_STARTER_CATALOG_V0_1.md`;
+- `docs/THAILAND_STANDARDS_SOURCE_REGISTER_V0_1.md`;
+- `.agents/skills/thai-road-diagram/SKILL.md`.
+
+Historical Phase 2E detail documents may remain useful as prototype evidence, but they must not override the rebaseline documents above when they conflict.
 
 ## Product intent
 
@@ -55,22 +73,24 @@ Do not violate these without an explicit architecture decision:
 10. Do not hard-code unverified Thai-standard values as authoritative requirements.
 11. Do not copy competitor source code or assets. Research is architectural inspiration only unless license review explicitly approves reuse.
 
-## Current implementation preservation
+## Rewrite / migration policy
 
-Until a migration task explicitly says otherwise:
-- keep the Phase 2E prototype buildable;
-- do not delete current tests merely because the architecture is changing;
-- do not silently rewrite existing project JSON semantics;
-- isolate experimental/spike code from the old production path;
-- record intentional compatibility breaks.
+The Phase 2E implementation is not protected for its own sake.
 
-Useful concepts likely worth preserving:
+- Preserve Git history and a recoverable baseline.
+- Reuse code only when reuse clearly reduces risk/cost without distorting the rebaselined architecture.
+- Replace old data model, geometry, renderer, state design, tests, or UI when they materially conflict with the new source of truth.
+- Do not spend significant effort creating compatibility shims for prototype-only behavior unless real project data demonstrates a migration need.
+- Keep legacy tests/code only for the minimum transition period required to prove the replacement.
+- Prefer a clean production cutover over a long-lived dual architecture.
+
+Useful Phase 2E concepts likely worth preserving or adapting:
 - domain/UI/geometry/validation separation;
 - meters as domain units;
 - non-blocking validation;
 - standard/source provenance statuses;
 - selection/lock/visibility/z-order concepts;
-- JSON serializability;
+- defensive serialization/sanitization patterns;
 - SVG export as one output format;
 - small deterministic geometry tests.
 
@@ -135,13 +155,14 @@ For substantial work:
 1. inspect repository and authoritative rebaseline docs;
 2. restate the task boundary and affected modules;
 3. plan before editing;
-4. scrutinize whether a smaller change proves the requirement;
+4. use `.agents/skills/scrutinize-change/SKILL.md` when architectural blast radius is material;
 5. implement in a bounded branch/worktree;
 6. add/update tests with the implementation;
 7. run all relevant deterministic checks;
 8. review execution paths, not only diffs;
-9. update docs/qualification evidence when behavior changes;
-10. stop if the task requires an unresolved product/architecture decision rather than inventing one silently.
+9. apply the appropriate qualification skill (`geometry-gate`, `ux-gate`, etc.);
+10. update docs/qualification evidence when behavior changes;
+11. stop if the task requires an unresolved product/architecture decision rather than inventing one silently.
 
 Avoid speculative abstractions that are not required by the current or immediate next stage.
 
@@ -161,7 +182,12 @@ These commands describe the existing TypeScript prototype. A future kernel spike
 
 ## Immediate next executable stage
 
-After rebaseline approval, the preferred next task is a **geometry/semantic spike**, not continuation of the old Phase 2E feature roadmap.
+After rebaseline approval, the preferred next task is **Stage R1 — Geometry & Semantic Kernel Spike**, not continuation of the old Phase 2E feature roadmap.
+
+Use:
+- `docs/STAGE_R1_GEOMETRY_SEMANTIC_SPIKE.md`;
+- `docs/CODEX_R1_EXECUTION_PACKET.md`;
+- `.agents/skills/geometry-gate/SKILL.md`.
 
 The spike should prove, at minimum:
 - generalized alignment/station API;
