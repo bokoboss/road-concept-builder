@@ -1,98 +1,143 @@
-# Codex Starter Workflow
+# Codex Starter Workflow — Rebaseline
 
 ## Purpose
 
-Use this workflow to prevent Codex from over-building the app or jumping into intersections, CAD behavior, or full pavement marking libraries too early.
+Use this workflow when starting a new Codex session on Road Concept Builder.
 
-## Step 1 - Read and Summarize
+Do not use the legacy Phase 0/Phase 1 straight-road workflow. The next executable coding stage is R1 only after the rebaseline PR is accepted.
 
-Run this first:
+## Step 1 — Verify repository state
 
 ```text
 /status
-Read AGENTS.md and these docs:
-- docs/PRD.md
-- docs/UI_UX_GUIDELINES.md
-- docs/PAVEMENT_MARKING_SYSTEM.md
-- docs/PRODUCT_BOUNDARY_AND_SCOPE.md
-- docs/GEOMETRY_SCALE_POLICY.md
-- docs/MVP_ROADMAP.md
-- docs/TECHNICAL_DESIGN.md
-
-Summarize the product intent, UX principles, negative scope, and recommended first implementation task. Do not write code yet.
+Verify repository path, current branch, HEAD SHA, worktree cleanliness, and current open task/PR context.
+Do not modify files yet.
 ```
 
-## Step 2 - Plan Phase 0 Only
+Confirm the rebaseline has been merged before starting R1. If not, work only on the designated rebaseline branch/task.
+
+## Step 2 — Read authoritative context
 
 ```text
-/plan
-Plan Phase 0 only: Static App Shell + Static SVG Preview.
+Read in order:
+- AGENTS.md
+- docs/STAGE_R1_GEOMETRY_SEMANTIC_SPIKE.md
+- docs/CODEX_R1_EXECUTION_PACKET.md
+- docs/TECHNICAL_REBASELINE_V0_1.md
+- docs/PRODUCT_BASELINE_V0_1.md
+- docs/DEVELOPMENT_OPERATING_MODEL_V0_1.md
+- .agents/skills/scrutinize-change/SKILL.md
+- .agents/skills/geometry-gate/SKILL.md
+- .agents/skills/thai-road-diagram/SKILL.md
+- docs/REBASELINE_AUDIT_2026-08-25.md
 
-Scope:
-- React + TypeScript + Vite scaffold.
-- Clean 3-panel layout: left template/marking palette, center SVG canvas, right inspector/validation panel.
-- Top bar with project title, validate, export placeholder.
-- Static SVG road segment preview with sample lane arrows, stop line, transverse warning bars, lane lines, median, and shoulders.
-- Clean engineering-oriented UI style.
-- No real geometry engine yet.
-- No intersections, U-turn logic, roundabouts, database, login, AI prompt-to-diagram, CAD drag-and-drop, or backend.
-
-Return a concise implementation plan and file list before coding.
+Summarize:
+1. product source of truth;
+2. R1 goal/non-goals;
+3. hard architecture constraints;
+4. acceptance evidence;
+5. legacy code that appears reusable vs constraining.
+Do not write code yet.
 ```
 
-## Step 3 - Implement Phase 0
+## Step 3 — Inspect the actual implementation
 
-```text
-/goal
-Implement Phase 0 exactly as planned.
+Inspect:
+- package scripts and toolchain;
+- existing TypeScript domain model;
+- straight-road geometry;
+- existing tests;
+- editor/render/export separation;
+- any changes since the documented baseline.
 
-Priorities:
-- Make the UI feel right first.
-- Keep code simple.
-- Use SVG for the static diagram.
-- Use clean styling.
-- Add minimal tests only if scaffold supports them easily.
-- Update README/AGENTS with actual run/test/build commands.
+Run current baseline checks before changing architecture where practical.
 
-Do not implement real road geometry, intersections, U-turns, roundabouts, database, login, cloud sync, AI prompt-to-diagram, or CAD-style editing.
-```
+Do not assume a legacy abstraction must be preserved merely because it exists.
 
-## Step 4 - Review Phase 0
+## Step 4 — Scrutinize the R1 implementation plan
 
-```text
-/review
-Review Phase 0 against:
-- docs/UI_UX_GUIDELINES.md
-- docs/PAVEMENT_MARKING_SYSTEM.md
-- docs/PRODUCT_BOUNDARY_AND_SCOPE.md
-- docs/MVP_ROADMAP.md
+Use `.agents/skills/scrutinize-change/SKILL.md`.
 
-Check for:
-- over-engineering;
-- scope creep;
-- poor UX clarity;
-- cluttered UI;
-- missing marking palette concept;
-- missing inspector/validation structure;
-- broken run/build/test commands.
-```
+The plan must answer:
+- What is the new canonical semantic model?
+- How is alignment/stationing represented?
+- How are variable-width lane/component profiles represented?
+- How is a turn pocket proven as a general lifecycle rather than a special case?
+- How are candidate vs connected junctions separated?
+- How will both 2D and 3D consume one canonical/derived geometry path?
+- What small proof will compare TypeScript vs Rust/WASM before committing to a rewrite?
+- What test fixtures/invariants make the result falsifiable?
 
-## Step 5 - Plan Phase 1 Only
+Return the scrutinize recommendation before implementation.
 
-After Phase 0 is reviewed and accepted:
+## Step 5 — Implement R1 incrementally
 
-```text
-/plan
-Plan Phase 1 only: Straight Road Segment Generator.
+Follow the slices in `docs/CODEX_R1_EXECUTION_PACKET.md`:
+1. alignment/stationing;
+2. semantic road/cross section;
+3. generic auxiliary lane/turn pocket;
+4. candidate junction/topology;
+5. junction surface/per-corner geometry;
+6. lane connectivity;
+7. shared 2D/3D diagnostics;
+8. robustness/qualification.
 
-Scope:
-- RoadSegment, Lane, Median, Shoulder domain model.
-- Meter-based geometry with pxPerMeter conversion.
-- Inputs for forward lanes, opposing lanes, lane width, shoulder width, median type, median width.
-- SVG rendering for lane lines, edge lines, median, and lane arrows.
-- Basic MarkingObject for lane direction arrows.
-- SVG export.
-- Vitest tests for road width, lane centerlines, median position, and arrow placement.
+Keep each slice small and testable.
 
-Do not implement U-turns, intersections, slip lanes, roundabouts, save/load, database, or CAD editing yet.
-```
+Do not broaden scope into production maps, UI polish, asset libraries, AI integration, terrain, simulation, or CAD export.
+
+## Step 6 — Mechanical verification
+
+Run the relevant checks required by R1 and record concrete command output/results.
+
+At minimum preserve applicable existing checks and add:
+- new unit tests;
+- canonical fixtures;
+- invariants;
+- deterministic repeated-run tests;
+- property/random tests where feasible;
+- fuzz for risky geometry where feasible;
+- build/typecheck for diagnostic UI;
+- benchmark measurements.
+
+## Step 7 — Geometry gate
+
+Use `.agents/skills/geometry-gate/SKILL.md`.
+
+Do not call R1 complete unless the gate is `PASS` or an explicitly accepted `PASS WITH LIMITATIONS`.
+
+A screenshot that looks correct is not qualification evidence.
+
+## Step 8 — Qualification report
+
+Create/update:
+- `docs/R1_QUALIFICATION_REPORT.md`.
+
+Include:
+- HEAD SHA;
+- implementation architecture;
+- fixture matrix;
+- test results;
+- fuzz/property-test status;
+- benchmark evidence;
+- known limitations;
+- TypeScript vs Rust/WASM recommendation;
+- Phase 2E reuse/retire/delete recommendation;
+- next-stage recommendation.
+
+## Model guidance
+
+R1 is heavily pre-specified. Start with GPT-5.6 Luna at high/max reasoning when available.
+
+Escalate to Terra/Sol based on demonstrated failure/complexity, not task prestige. See `docs/DEVELOPMENT_OPERATING_MODEL_V0_1.md`.
+
+## Stop conditions
+
+Stop and report rather than silently changing product architecture if:
+- one semantic source cannot drive both 2D and 3D;
+- a required geometry invariant must be weakened;
+- dependency licensing is incompatible;
+- the spec requires an unresolved domain/product decision;
+- the kernel-language recommendation cannot be supported by evidence.
+
+Ordinary coding/test failures are not stop conditions; continue the bounded fix/verify loop.
