@@ -1,126 +1,102 @@
 # Road Concept Builder
 
-Road Concept Builder is a lightweight 2D plan-view road layout diagram builder for traffic engineering reports, concept presentations, and early-stage road improvement communication.
+Road Concept Builder is being rebaselined as a **map-first, engineering-aware street and intersection concept design environment** for traffic engineers and transport planners.
 
-The product is intended for Thai left-hand-traffic conditions and traffic engineering use cases such as road segments, U-turn openings, intersection approaches, pocket lanes, free-left slip lanes, roundabouts, access management, and pavement markings.
+The goal is to make real-world roadway concepts substantially faster to create than CAD-heavy workflows while preserving engineering dimensions, semantic road/lane/junction structure, editability, and presentation quality.
 
-## Product Positioning
+## Current repository status
 
-This is a **template-first, parameter-driven, live-preview visual authoring tool**.
+`main` currently contains a working **Phase 2E prototype** focused on a parameter-driven straight-road SVG editor. It includes:
+- straight-road lane/median/shoulder parameters;
+- median opening/U-turn and a prototype pocket lane;
+- pavement-marking objects;
+- object selection/lock/visibility/z-order;
+- non-blocking validation;
+- local JSON save/load;
+- SVG export;
+- TypeScript/Vitest tests.
 
-It is not:
+That prototype is useful evidence, but its old 2D-SVG-only roadmap is no longer the intended final product architecture.
 
-- a construction drawing package;
-- a CAD replacement;
-- a traffic simulation package;
-- a signal timing calculator;
-- a swept-path analysis tool;
-- an AI image generator;
-- a freehand drafting tool.
+The current rebaseline is tracked by GitHub issue #1 and the rebaseline PR/branch. New implementation work should follow the rebaseline documents and `AGENTS.md` rather than extending the old roadmap by default.
 
-The first goal is to make clean, useful, editable concept diagrams that can be exported to reports and presentations.
+## Product direction
 
-## Core UX Principle
+The rebaselined product targets:
+- standalone desktop use;
+- map/satellite/imported-plan starting workflows;
+- 2D plan view as the primary engineering authoring surface;
+- synchronized live 3D derived from the same semantic model;
+- metric-native geometry;
+- Thailand and left-hand traffic as the default context;
+- configurable LHT/RHT architecture;
+- reference-alignment and station-based road geometry;
+- component-based cross sections;
+- native longitudinal taper/widening/lane-add/drop/turn-pocket behavior;
+- first-class junction geometry and topology;
+- Existing / Alternative scenarios;
+- procedural markings and semantic sign/signal/street-furniture assets;
+- reusable 2D/3D asset library;
+- advisory, source-versioned standards profiles;
+- future AI-assisted natural-language actions translated into typed, previewable, validated, undoable semantic commands.
 
-The user should be able to:
+The product remains a **concept-design tool**, not a construction drawing package or a Civil 3D/OpenRoads replacement.
 
-1. choose a real-world road situation;
-2. adjust engineering parameters;
-3. add pavement markings using lane/approach/area targeting;
-4. see the SVG preview update immediately;
-5. review non-blocking validation warnings;
-6. export a clean SVG/PNG.
+## Core product principles
 
-The product should feel closer to **Streetmix / Canva / VISSIM-style pavement marking placement for traffic diagrams** than to AutoCAD or Civil 3D.
+1. Map first.
+2. Plan authoring first.
+3. One semantic model drives 2D, cross section, and 3D.
+4. Semantic engineering objects come before graphics.
+5. Automation first; manual override second.
+6. Direct manipulation and exact numeric input coexist.
+7. Presets instantiate editable components; they are not opaque/static graphics.
+8. Longitudinal road changes are station-based primitives, not detached feature polygons.
+9. Geometry and topology are separate; visual crossing does not automatically create a junction.
+10. Standards warnings are advisory and provenance-aware.
+11. AI uses the same command/validation/undo pipeline as manual editing.
+12. The normal workflow must not require the user to manually create SVG/GLB assets or use Illustrator/Blender.
 
-## Important Documents
+## Authoritative rebaseline documents
 
-Read these before implementation:
+Read these before new implementation work:
 
-- `AGENTS.md` - repository-level instructions for Codex and contributors.
-- `docs/PRD.md` - product definition and scope.
-- `docs/UI_UX_GUIDELINES.md` - UI/UX direction and interaction principles.
-- `docs/PAVEMENT_MARKING_SYSTEM.md` - core marking placement, library, and data model.
-- `docs/PRODUCT_BOUNDARY_AND_SCOPE.md` - what the app is and is not.
-- `docs/GEOMETRY_SCALE_POLICY.md` - scale, units, and accuracy policy.
-- `docs/DATA_MODEL.md` - domain objects and JSON-serializable project model.
-- `docs/MVP_ROADMAP.md` - phased implementation plan.
-- `docs/VALIDATION_RULES.md` - advisory validation philosophy and rule inventory.
-- `docs/CODEX_STARTER_WORKFLOW.md` - recommended Codex workflow and prompts.
+- `AGENTS.md`
+- `docs/REBASELINE_AUDIT_2026-08-25.md`
+- `docs/PRODUCT_BASELINE_V0_1.md`
+- `docs/UX_ARCHITECTURE_V0_1.md`
+- `docs/ASSET_SYSTEM_V0_1.md`
+- `docs/TECHNICAL_REBASELINE_V0_1.md`
+- `docs/DEVELOPMENT_OPERATING_MODEL_V0_1.md`
+- `docs/STAGE_R1_GEOMETRY_SEMANTIC_SPIKE.md`
 
-## Recommended Implementation Stack
+Project skills:
+- `.agents/skills/thai-road-diagram/SKILL.md`
+- `.agents/skills/scrutinize-change/SKILL.md`
+- `.agents/skills/geometry-gate/SKILL.md`
+- `.agents/skills/ux-gate/SKILL.md`
 
-Use the simplest stack that can produce working software quickly:
+Older files such as `docs/PRD.md`, `docs/MVP_ROADMAP.md`, `docs/UI_UX_GUIDELINES.md`, and legacy Phase 2E data-model notes remain historical/prototype context. When they conflict with the rebaseline documents above, the rebaseline documents are authoritative.
 
-- React + TypeScript + Vite
-- SVG rendering first
-- Vitest for geometry and validation tests
-- CSS Modules or Tailwind CSS for clean UI styling
-- JSON-serializable project state
+## Next executable stage
 
-Do not add database, authentication, cloud sync, 3D, DXF/DWG export, AI prompt-to-diagram, or full CAD-style editing in the MVP.
+After the rebaseline is accepted, the preferred next stage is **R1 — Geometry & Semantic Kernel Spike**.
 
-## Current Implementation
+R1 must prove before a production editor rewrite:
+- generalized horizontal alignment and stationing;
+- station-based variable-width components/lanes;
+- right-turn pocket as a general lane lifecycle/transition;
+- candidate T/four-leg junction geometry;
+- explicit lane connectivity/topology;
+- shared derived geometry for minimal 2D and 3D views;
+- deterministic tests, invariants, stress fixtures, and benchmark evidence;
+- an evidence-based TypeScript vs Rust/WASM kernel recommendation.
 
-Phase 2E extends the parametric straight road segment generator with practical local editor workflow controls while preserving the Phase 0 three-panel shell and the existing road geometry engine.
+The Phase 2E implementation may be reused or replaced. Backward compatibility with prototype-only abstractions must not constrain a better architecture. Git history remains the recoverable baseline.
 
-Included:
+## Current prototype commands
 
-- clean desktop three-panel app shell;
-- live SVG preview generated from meter-based parameters;
-- eastbound and westbound lane counts;
-- two-way, eastbound-only, westbound-only, and no-lanes preview modes;
-- lane width and outer-side shoulder width;
-- no, painted, or raised median with configurable width;
-- lane divider lines, edge lines, direction separation, lane labels, and optional through arrows;
-- Thailand left-hand-traffic orientation: eastbound is upper and points right; westbound is lower and points left;
-- small pure geometry and validation functions;
-- non-blocking validation for lane counts, lane width, shoulder width, and median width;
-- geometry, validation, and left-hand-traffic regression tests.
-- one optional median opening on a two-way road with a painted or raised median;
-- eastbound-to-westbound and westbound-to-eastbound U-turn directions;
-- optional feature-specific generated U-turn arrow;
-- split median surface and median edge lines around the opening;
-- non-blocking U-turn validation for road operation, median type, opening width, and position.
-- one optional U-turn-specific pocket lane tied to the median opening;
-- pocket storage length and taper length using the main lane width as a Phase 2B simplification;
-- Thailand left-hand-traffic pocket placement: eastbound pockets extend upstream to the left of the opening, westbound pockets extend upstream to the right;
-- optional pocket U-turn arrow;
-- non-blocking pocket validation for prerequisites, storage length, taper length, fit, and missing pocket arrow.
-- view options for clean screenshots: drawing labels, lane labels, feature labels, and pavement markings can be shown or hidden from the SVG preview;
-- `ProjectDocument` state separates `parametricRoad`, `canvasObjects`, `viewOptions`, and `selectedObjectId`;
-- generated through arrows, U-turn arrows, and pocket U-turn arrows are represented as generated marking canvas objects with `PROJECT_ASSUMPTION` source status;
-- the left marking palette can place one manual through-arrow object with `CUSTOM_CONCEPT` source status;
-- visible marking objects can be selected and dragged directly on the SVG canvas;
-- the inspector can edit the selected object's visibility, lock state, position, rotation, scale, and z-index without changing road geometry or validation.
-- selected marking objects can be deleted, locked/unlocked, shown/hidden, brought forward, and sent backward;
-- selected manual marking objects can be duplicated;
-- the inspector includes a compact object list for selecting visible or hidden marking objects;
-- current `ProjectDocument` state can be downloaded as JSON and loaded back from a local JSON file with basic sanitization;
-- current SVG drawing can be exported as a standalone SVG file that respects the active view options.
-
-Phase 1 uses eastbound/westbound naming because the current diagram is east-west oriented. Future phases may generalize direction naming for other alignments.
-
-For `medianType = none`, the renderer removes the physical median gap and draws a center direction-separation line. Shoulder width applies only to the outer side of each carriageway in Phase 1.
-
-One-way previews render one centered carriageway, omit the unused direction label, and do not render a median or center direction-separation line. If both directions have zero lanes, the canvas shows a non-blocking placeholder.
-
-Phase 1 input safeguards limit each direction to integer lane counts from 0 to 8, lane width to 2.5-5.0 m, outer shoulder width to 0-5.0 m, and median width to 0-20.0 m. These are practical preview safeguards, not formal Thai-standard limits. Invalid source values remain visible in the inspector, produce validation warnings, and are safely normalized for rendering.
-
-Drawing settings are also sanitized before geometry or SVG rendering. Invalid scale and segment-length values use safe defaults, and an internal absolute cap of 16 lanes per direction prevents unsafe callers from creating unbounded lane-generation loops. The Phase 1 straight-road SVG preview clamps its rendered segment extent to 500 m and bounds preview scale to keep SVG coordinates finite. This is only a preview/rendering safeguard: it is not a Thai standard, a road-design limit, or a future intersection limit. Future intersection modules should use their own preview extent settings, such as `approachLengthMeters`. Median width is ignored by rendering and validation when `medianType = none`.
-
-Phase 2 opening position is measured from the segment's left/west edge to the opening center. The full opening must fit within the preview segment. Invalid U-turn configurations keep rendering the base Phase 1 road and show non-blocking validation warnings.
-
-Phase 2B pocket storage and taper must fit upstream of the selected median opening. Invalid pocket configurations keep rendering the Phase 2A base road/opening and omit pocket geometry so the preview does not show a misleading pocket. The pocket uses the current lane width; no separate pocket-width control is exposed in this phase.
-
-Phase 2E keeps object-based editing limited to marking objects only. The road, lanes, median, U-turn opening, and U-turn pocket remain parametric. Arrow symbols remain schematic/report-oriented; exact Thai-standard symbol geometry, a full marking library, warning bars, PNG export, and CAD export are deferred.
-
-## Development Commands
-
-Requirements:
-
-- Node.js 20.19+ or 22.12+;
-- npm.
+The preserved Phase 2E prototype currently uses:
 
 ```text
 Install: npm install
@@ -130,8 +106,21 @@ Type check: npm run typecheck
 Build: npm run build
 ```
 
-The development server prints its local URL after `npm run dev`.
+Current stack:
+- React 19;
+- TypeScript;
+- Vite;
+- Vitest;
+- SVG preview/export.
 
-## Phase Boundary
+A future geometry spike may add Rust/WASM and 3D diagnostic dependencies; those choices are not frozen until the R1 evidence gate is complete.
 
-The current implementation is limited to the Phase 2E straight-road median opening, optional U-turn-specific pocket lane with storage and taper, drawing label visibility controls, selectable/draggable marking objects, one manual through-arrow placement action, local JSON save/load, and SVG export. It does not include draggable lanes/median geometry, warning bars, signalized U-turns, intersections, slip lanes, roundabouts, a general auxiliary-lane framework, a full pavement-marking library, PNG export, authentication, AI prompt-to-diagram, or CAD export.
+## Development approach
+
+Substantial work follows:
+
+```text
+Research -> Specify -> Plan -> Scrutinize -> Implement -> Verify -> Independent Review -> UAT -> Merge
+```
+
+Use the cheapest model that can reliably complete a bounded task. Research/specification/review should remove ambiguity before Codex implementation. See `docs/DEVELOPMENT_OPERATING_MODEL_V0_1.md`.
