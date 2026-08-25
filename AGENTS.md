@@ -1,130 +1,153 @@
 # AGENTS.md
 
-This file gives repository-level guidance to Codex and other coding agents.
+Repository-level instructions for Codex and other coding agents.
 
-## Project Intent
+## Current transition status
 
-Road Concept Builder is a Thai-oriented 2D plan-view road concept diagram builder for traffic engineering reports and presentations.
+The repository contains a working **Phase 2E prototype** built around a straight-road, 2D SVG, parameter-driven editor. That prototype is preserved as migration evidence, but its old product roadmap is **not authoritative for new feature development**.
 
-The product must prioritize:
+The project is being rebaselined under GitHub issue #1 toward a map-first, engineering-aware 2D/3D street and intersection concept designer.
 
-- working software over speculative architecture;
-- clean UI and simple UX over feature breadth;
-- SVG-based presentation-ready output;
-- parametric geometry over freehand drawing;
-- smart lane/approach/area-based pavement marking placement;
-- small, reviewable implementation increments.
+Before implementation, read:
+- `docs/REBASELINE_AUDIT_2026-08-25.md`;
+- `docs/PRODUCT_BASELINE_V0_1.md`;
+- `docs/UX_ARCHITECTURE_V0_1.md`;
+- `docs/ASSET_SYSTEM_V0_1.md`;
+- `docs/TECHNICAL_REBASELINE_V0_1.md`.
 
-## Product Boundaries
+Older PRD/roadmap/UX documents remain useful historical/prototype context but must not override the rebaseline documents above when they conflict.
 
-Build concept/schematic diagrams, not construction drawings.
+## Product intent
 
-Do not implement these in the MVP:
+Build a lightweight professional concept-design environment for traffic engineers and transport planners.
 
-- login, authentication, user accounts;
-- database or cloud sync;
-- multi-user collaboration;
-- AI prompt-to-diagram;
-- 3D rendering;
-- traffic simulation;
-- traffic volume analysis;
-- signal timing calculation;
-- swept-path analysis;
-- CAD/DXF/DWG export;
-- full drag-and-drop CAD editor;
-- complete Thai-standard dimension enforcement;
-- mobile-first UI.
+Core direction:
+- standalone desktop target;
+- map/satellite/imported-plan first workflow;
+- 2D plan view as the primary engineering authoring surface;
+- synchronized live 3D from the same semantic model;
+- metric-native;
+- Thailand/LHT default with LHT/RHT-configurable architecture;
+- reference-alignment + station-based road model;
+- component-based cross sections;
+- native taper/widening/lane-add/drop/turn-pocket lifecycle;
+- first-class junction geometry + topology;
+- Existing / Alternative scenarios;
+- procedural and semantic asset system;
+- advisory standards with source/version provenance;
+- future natural-language AI actions translated to typed, previewable, undoable semantic commands.
 
-## UX Direction
+The product remains a concept-design tool, not a Civil 3D/OpenRoads replacement.
 
-The app is a **template-first, parameter-driven, live-preview visual authoring tool**.
+## Hard architecture rules
 
-Do not build a long form-only interface.
-Do not start with a blank CAD canvas.
-Do not require the user to manually draw each lane line or marking.
+Do not violate these without an explicit architecture decision:
 
-Use this core workflow:
+1. Project source of truth is semantic engineering data, not SVG, Canvas nodes, or 3D meshes.
+2. 2D and 3D must derive from one model/geometry pipeline.
+3. Road geometry must support a generalized reference alignment and stationing.
+4. Longitudinal changes must be general station-based behavior, not one-off feature polygons.
+5. Junction geometry and topology are separate; geometric crossing is only a candidate connection.
+6. Junctions and lane connections are first-class semantic objects.
+7. Render/view scale is not engineering/project truth.
+8. Standards/rules are separate from geometry feasibility.
+9. AI must not mutate raw mesh or project JSON directly; it may propose typed commands through the same command/validation/undo path used by the UI.
+10. Do not hard-code unverified Thai-standard values as authoritative requirements.
+11. Do not copy competitor source code or assets. Research is architectural inspiration only unless license review explicitly approves reuse.
 
-```text
-Choose situation/template -> configure parameters -> add pavement markings -> validate -> export
-```
+## Current implementation preservation
 
-The UI should use a clean 3-panel layout:
+Until a migration task explicitly says otherwise:
+- keep the Phase 2E prototype buildable;
+- do not delete current tests merely because the architecture is changing;
+- do not silently rewrite existing project JSON semantics;
+- isolate experimental/spike code from the old production path;
+- record intentional compatibility breaks.
 
-```text
-Left: templates/components/markings | Center: SVG canvas | Right: inspector/validation
-```
+Useful concepts likely worth preserving:
+- domain/UI/geometry/validation separation;
+- meters as domain units;
+- non-blocking validation;
+- standard/source provenance statuses;
+- selection/lock/visibility/z-order concepts;
+- JSON serializability;
+- SVG export as one output format;
+- small deterministic geometry tests.
 
-The diagram should be clean enough for reports and presentations.
+Prototype-specific structures such as `StraightRoadParameters`, eastbound/westbound orientation, a U-turn-specific pocket special case, and `pxPerMeter`-driven editor assumptions must not define the generalized model.
 
-## Pavement Marking Direction
+## UX direction
 
-Pavement marking is a core system, not a decorative late-stage feature.
+The product should be faster and easier than CAD but more precise than a generic diagram tool.
 
-Markings should be placed primarily by targeting:
+Principles:
+- viewport first;
+- 2D plan authoring first;
+- Split 2D/3D as a signature view;
+- direct manipulation + exact numeric input;
+- progressive disclosure;
+- small contextual tool set instead of a CAD ribbon;
+- navigation and editing modes clearly separated;
+- synchronized selection across 2D/3D/section;
+- visible scenarios/alternatives;
+- Issues panel + on-canvas validation, not modal warning spam;
+- automation generates common geometry, engineer may override;
+- user must not be required to manually create SVG/GLB assets or use Illustrator/Blender as part of the normal workflow.
 
-- a lane;
-- an approach;
-- a road segment;
-- an area or island;
-- a node such as U-turn opening or intersection.
+## Asset direction
 
-Use smart placement first. Freehand drawing is out of scope for the MVP.
+Prefer this order:
+1. procedural geometry/marking generation;
+2. semantic assemblies;
+3. original project-generated vector/simple 3D assets;
+4. permissively licensed third-party assets after provenance/license review.
 
-Marking objects must carry source status where relevant:
+Every third-party asset must have auditable source/license metadata.
 
-- `THAI_AUTHORITY`
-- `AGENCY_MANUAL`
-- `INTERNATIONAL_BEST_PRACTICE`
-- `PROJECT_ASSUMPTION`
-- `CUSTOM_CONCEPT`
-- `TODO_VERIFY`
+Do not commit competitor assets without explicit license confirmation.
 
-Do not present unverified defaults as official Thai standards.
+## Engineering/testing discipline
 
-## Geometry and Scale Policy
+Geometry changes require evidence, not visual confidence alone.
 
-Use engineering-informed schematic geometry.
+For generalized geometry/kernel work, plan for:
+- unit tests;
+- canonical/golden geometry fixtures;
+- invariants;
+- deterministic output checks;
+- property-based/randomized tests where appropriate;
+- fuzz tests for risky geometry operations where feasible;
+- benchmark/regression evidence.
 
-- Use meters as domain units.
-- Convert to SVG pixels through a single scale setting.
-- Support approximate scaled diagrams.
-- Do not claim construction-drawing accuracy.
-- Keep geometry logic separate from React UI.
+Critical invariants include:
+- finite coordinates;
+- monotonic stationing;
+- non-negative component/lane width;
+- valid parent/topology references;
+- no unintentional self-intersection/invalid holes after cleanup;
+- no degenerate/NaN mesh triangles;
+- valid lane-connection endpoints;
+- no network connection created solely because paths visually cross.
 
-## Default Context
+## Work discipline
 
-- Default traffic side: left-hand traffic.
-- Default country context: Thailand.
-- Right-turn pockets are generally median-side pockets in left-hand traffic.
-- U-turn pockets typically relate to median openings.
+For substantial work:
+1. inspect repository and authoritative rebaseline docs;
+2. restate the task boundary and affected modules;
+3. plan before editing;
+4. scrutinize whether a smaller change proves the requirement;
+5. implement in a bounded branch/worktree;
+6. add/update tests with the implementation;
+7. run all relevant deterministic checks;
+8. review execution paths, not only diffs;
+9. update docs/qualification evidence when behavior changes;
+10. stop if the task requires an unresolved product/architecture decision rather than inventing one silently.
 
-## Engineering Rules
+Avoid speculative abstractions that are not required by the current or immediate next stage.
 
-Use TypeScript.
+## Current development commands
 
-Keep these concerns separated:
-
-- UI components;
-- domain model;
-- geometry calculations;
-- SVG rendering;
-- pavement marking placement;
-- validation rules;
-- export logic.
-
-Avoid over-engineering. Add abstractions only when they directly support the current or next phase.
-
-## Expected Stack
-
-Recommended initial stack:
-
-- React + TypeScript + Vite
-- SVG renderer
-- Vitest
-- CSS Modules or Tailwind CSS
-
-After scaffolding, update this section with actual commands:
+The preserved Phase 2E prototype currently uses:
 
 ```text
 Install: npm install
@@ -134,21 +157,19 @@ Type check: npm run typecheck
 Build: npm run build
 ```
 
-## Definition of Done
+These commands describe the existing TypeScript prototype. A future kernel spike may add Rust/WASM commands; document them explicitly when that spike is created.
 
-Before considering a task done:
+## Immediate next executable stage
 
-- the app runs locally;
-- type check passes;
-- tests pass when tests exist;
-- SVG preview renders correctly;
-- UI remains clean and uncluttered;
-- no negative-scope feature was added;
-- relevant docs are updated when behavior changes;
-- implementation remains limited to the agreed phase.
+After rebaseline approval, the preferred next task is a **geometry/semantic spike**, not continuation of the old Phase 2E feature roadmap.
 
-## First Task Discipline
+The spike should prove, at minimum:
+- generalized alignment/station API;
+- variable-width lane/component profiles;
+- turn pocket as a general longitudinal transition;
+- candidate T/four-leg junction and lane connectivity;
+- shared derived geometry for a minimal 2D diagnostic view and minimal synchronized 3D view;
+- deterministic tests/fixtures/benchmarks;
+- evidence-based TypeScript vs Rust/WASM kernel recommendation.
 
-The first implementation task should be **Phase 0: Static App Shell + Static SVG Preview**.
-
-Do not implement road geometry, U-turns, intersections, roundabouts, database, AI prompt handling, or drag-and-drop before the Phase 0 UI shell is reviewed.
+Do not build polished production UI, a large asset library, terrain, simulation, or AI integration before this spike passes its qualification gate.
