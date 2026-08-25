@@ -1,144 +1,298 @@
-# Technical Design
+# Technical Design — Rebaseline v0.1
 
-## Technical Goal
+## Technical goal
 
-Build a lightweight web app that produces clean SVG road concept diagrams using parametric geometry and smart pavement marking placement.
+Build a standalone map-first engineering concept editor in which one renderer-independent semantic road/network model drives 2D plan, cross-section and 3D output.
 
-Do not build a CAD system.
+The current React/TypeScript/SVG Phase 2E application is a prototype, not a permanent architecture constraint.
 
-## Recommended Stack
+## Current architecture status
 
-- React
-- TypeScript
-- Vite
-- SVG rendering
-- Vitest
-- CSS Modules or Tailwind CSS
+### Preserved prototype stack
+- React 19;
+- TypeScript;
+- Vite;
+- Vitest;
+- SVG preview/export.
 
-## High-Level Architecture
+### Not frozen yet
+- final geometry-kernel language;
+- final high-object-count 2D editing renderer;
+- final desktop packaging stack;
+- map renderer/provider implementation;
+- state-management library.
+
+Stage R1 must reduce geometry/kernel uncertainty before these production choices are locked.
+
+## High-level architecture
+
+```text
+Desktop Application
+  UI / Workspace
+  Command Bus + Undo/Redo
+  Project / Scenario Model
+             |
+             v
+     Semantic Road Kernel
+       alignment/station
+       cross sections
+       lane lifecycle
+       junction geometry
+       topology/connectivity
+             |
+      +------+-------+
+      |              |
+      v              v
+   2D Derived     3D Derived
+   Geometry       Mesh/Scene Data
+      |              |
+      v              v
+   2D Renderer     3D Renderer
+
+Independent systems:
+- Map/reference context
+- Standards/profile validation
+- Asset library/provenance
+- Export/presentation
+- AI intent -> typed command proposals
+```
+
+## Separation of concerns
+
+### Canonical engineering model
+
+Owns:
+- roads;
+- alignment/stationing;
+- lane/component semantics;
+- junction topology;
+- lane connectivity;
+- engineering markings/attachments;
+- dimensions;
+- standards-profile references.
+
+Must not reference React, DOM, SVG nodes, Canvas objects or Three.js mesh objects.
+
+### Geometry kernel
+
+Transforms semantic state into deterministic geometric results.
+
+Responsibilities:
+- evaluate alignments;
+- station/lateral transforms;
+- component/lane boundaries;
+- station-based transitions;
+- junction envelopes/corners;
+- polygon cleanup;
+- triangulation-ready surfaces;
+- movement/connection guide geometry;
+- geometry invariants.
+
+### Topology
+
+Separate from final pavement polygons.
+
+Owns:
+- connected roads/approaches;
+- candidate vs actual junction states;
+- lane-to-lane connections;
+- movement semantics.
+
+### Command bus
+
+All committed edits should use typed semantic commands.
+
+Responsibilities:
+- input validation;
+- preview/change set where applicable;
+- apply;
+- undo/redo transaction;
+- dirty/dependency notification;
+- common boundary for manual UI and future AI intent.
+
+### 2D renderer
+
+Consumes derived road/network geometry and editor overlays.
+
+SVG remains acceptable for diagnostic/export use, but the production editing renderer is not frozen. Evaluate hybrid/GPU/vector approaches in R2 after R1 geometry proof.
+
+### 3D renderer
+
+Consumes derived mesh/surface data from the same semantic geometry pipeline.
+
+Initial candidate: Three.js/WebGL/WebGPU ecosystem, subject to R1/R2 integration review.
+
+3D owns presentation, not engineering truth.
+
+### Map/reference system
+
+Separate map renderer from tile/provider source/licensing.
+
+Requirements:
+- online provider abstraction;
+- imported local image/plan;
+- scale calibration;
+- optional CRS/georeference;
+- local-origin transform;
+- opacity/dim/lock;
+- offline blank/local project support.
+
+### Validation
+
+Two conceptual layers:
+1. geometry/model feasibility and invariants;
+2. standards/profile advisory rules.
+
+Do not make prototype numeric safety bounds equivalent to standards.
+
+### Assets
+
+Use typed asset families:
+- procedural road components;
+- procedural markings;
+- semantic assemblies;
+- props;
+- distributions.
+
+Keep licensing/provenance machine-readable.
+
+## Suggested production source layout
+
+Exact names are not frozen, but boundaries should resemble:
 
 ```text
 src/
-|- app/                 # app shell, routes if needed
-|- ui/                  # reusable UI components
-|- domain/              # TypeScript domain model
-|- geometry/            # meter-based geometry calculations
-|- renderers/           # SVG rendering components/functions
-|- markings/            # pavement marking definitions and placement
-|- validation/          # validation rules
-|- presets/             # road/intersection presets
-|- export/              # SVG/PNG/project export
-`- tests/               # unit tests
+  app/
+  editor/
+  commands/
+  project/
+  scenarios/
+  render2d/
+  render3d/
+  map/
+  assets/
+  standards/
+  validation/
+  export/
+
+kernel or kernel-next/
+  alignment/
+  road/
+  junction/
+  topology/
+  geometry/
+  fixtures/
 ```
 
-## Separation of Concerns
+If R1 selects Rust/WASM, kernel code may live under `crates/road-kernel/` with a narrow typed bridge.
 
-### UI
+## Coordinate strategy
 
-React components should display state and handle interaction.
-They should not contain core geometry calculations.
+- canonical domain dimensions: meters;
+- engineering coordinates may be local or georeferenced;
+- render using a project-local origin to avoid precision issues at large coordinate magnitudes;
+- screen pixels/view scale are renderer/session state;
+- panning/zooming never modifies engineering dimensions.
 
-### Domain Model
+## Alignment strategy
 
-Domain objects should be JSON-serializable and independent of React.
+R1 minimum:
+- line;
+- circular arc;
+- smooth cubic/Bezier conceptual curve;
+- chained primitives;
+- station API.
 
-### Geometry Engine
+Later architecture hook:
+- clothoid/spiral;
+- vertical profile;
+- terrain.
 
-Geometry functions should take domain objects and output geometric primitives in meters or normalized coordinates.
+Do not add full vertical/corridor design before a product need is proven.
 
-### SVG Renderer
+## Longitudinal road strategy
 
-Renderer converts geometry primitives and marking objects into SVG elements.
+Represent width/lifecycle by station profiles.
 
-### Pavement Marking System
+This should support through one general mechanism:
+- taper;
+- widening;
+- lane add/drop;
+- turn pocket;
+- bus bay;
+- median transition;
+- roadside component transition.
 
-Marking placement should target lanes, approaches, road segments, or areas.
+Avoid one-off polygon types for each feature.
 
-### Validation Engine
+## Junction strategy
 
-Validation rules should inspect domain objects and output issues.
+Pipeline direction:
+1. candidate geometric detection;
+2. explicit topology decision;
+3. approach/cut-station derivation;
+4. per-corner geometry;
+5. pavement envelope cleanup;
+6. islands/medians as semantic features;
+7. triangulation;
+8. lane connectivity.
 
-### Export
+Do not conflate visual intersection with network connection.
 
-SVG export should serialize the current rendered diagram.
-PNG export can come later.
+## Incremental regeneration
 
-## Geometry Data Flow
+Changes should eventually dirty dependencies rather than recompute the whole project.
+
+Example:
 
 ```text
-Project JSON
--> domain model
--> geometry calculations
--> marking placement
--> validation
--> SVG render
--> export
+Road R1 alignment edit
+ -> R1 station samples
+ -> R1 lane/component geometry
+ -> R1 attached markings/assets
+ -> connected junctions
+ -> R1/Junction 2D geometry
+ -> R1/Junction 3D mesh
+ -> affected validation
 ```
 
-## Phase 0 Implementation
+## Kernel language decision
 
-Implement a static app shell first.
+TypeScript vs Rust/WASM remains intentionally unresolved until R1.
 
-Do not build real domain geometry yet.
+Do not perform a large migration based on preference alone.
 
-Phase 0 should establish:
+Evaluate:
+- numeric robustness;
+- dependency maturity/license;
+- property/fuzz test tooling;
+- WASM/native integration;
+- performance;
+- developer/agent ergonomics;
+- build complexity;
+- maintenance cost.
 
-- layout;
-- visual style;
-- canvas proportions;
-- panel structure;
-- static SVG rendering quality;
-- static marking palette concept;
-- static inspector and validation panel.
+## Testing strategy
 
-## Phase 1 Implementation
+Geometry/kernel:
+- unit tests;
+- canonical fixtures;
+- invariants;
+- deterministic repeated-run tests;
+- property/random tests;
+- fuzz tests where feasible;
+- benchmarks.
 
-Add first real domain model and geometry:
+UI/editor later:
+- functional/component tests;
+- golden-workflow E2E;
+- visual regression;
+- keyboard/accessibility;
+- window-size checks;
+- human/domain UAT.
 
-- DrawingSettings;
-- RoadSegment;
-- Lane;
-- Median;
-- Shoulder;
-- simple MarkingObject for lane arrows;
-- road segment renderer;
-- SVG export;
-- Vitest geometry tests.
+## Immediate implementation boundary
 
-## Testing Strategy
+The next coding stage is `docs/STAGE_R1_GEOMETRY_SEMANTIC_SPIKE.md`.
 
-Test geometry and validation before UI behavior.
-
-Initial tests:
-
-- road width calculation;
-- lane centerline positions;
-- median positioning;
-- shoulder positioning;
-- arrow target positions;
-- validation issue generation.
-
-## Over-Engineering Guardrails
-
-Do not introduce:
-
-- global state frameworks unless needed;
-- database;
-- backend;
-- plugin architecture;
-- full scene graph;
-- complete CAD object system;
-- complex snapping;
-- GIS coordinates;
-- canvas rendering unless SVG proves insufficient.
-
-## Future Technical Options
-
-Only consider later if needed:
-
-- Zustand or Redux for complex state;
-- SVG-to-PNG export library;
-- localStorage project persistence;
-- project JSON import/export;
-- constrained drag handles;
-- DXF export.
+Do not build the polished production shell before R1 proves the core semantic/geometry architecture.
