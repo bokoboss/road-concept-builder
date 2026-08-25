@@ -1,82 +1,110 @@
 ---
 name: thai-road-diagram
-description: Use this skill when working on Thai-oriented road concept diagram components, pavement marking placement, validation rules, or road layout UX in Road Concept Builder.
+description: Use this skill for Thailand-oriented road/street/intersection concept modelling, markings, standards provenance, traffic-side semantics, validation, or road-layout UX in Road Concept Builder.
 ---
 
-# Thai Road Diagram Skill
+# Thai Road Concept Design Skill
 
 ## Purpose
 
-Use this skill to keep road concept diagram tasks aligned with the product direction.
+Keep Thailand-oriented engineering concept work aligned with the rebaselined product rather than the legacy straight-road SVG prototype.
 
-The app is a lightweight 2D plan-view road concept diagram builder for traffic engineering reports and presentations. It is not a CAD replacement or construction drawing tool.
+Road Concept Builder is a map-first, engineering-aware street/intersection concept designer. It is not a construction drawing package or a Civil 3D/OpenRoads replacement.
 
-## Required Context
+## Required context
 
-Before changing road geometry, markings, validation, or UI interactions, read:
+Before changing road geometry, markings, junction behavior, validation, assets, or related UX, read:
 
-- `docs/PRD.md`
-- `docs/UI_UX_GUIDELINES.md`
-- `docs/PAVEMENT_MARKING_SYSTEM.md`
-- `docs/PRODUCT_BOUNDARY_AND_SCOPE.md`
-- `docs/GEOMETRY_SCALE_POLICY.md`
-- `docs/DATA_MODEL.md`
-- `docs/VALIDATION_RULES.md`
-- `docs/MVP_ROADMAP.md`
+- `docs/PRODUCT_BASELINE_V0_1.md`
+- `docs/UX_ARCHITECTURE_V0_1.md`
+- `docs/ASSET_SYSTEM_V0_1.md`
+- `docs/TECHNICAL_REBASELINE_V0_1.md`
+- `docs/REBASELINE_AUDIT_2026-08-25.md`
+- relevant legacy documents only for prototype behavior/migration context.
 
-## Core Rules
+## Core rules
 
-- Default context is Thailand and left-hand traffic.
-- Build concept diagrams, not construction drawings.
-- Use meters in the domain model.
-- Render with SVG first.
-- Keep geometry separate from React UI.
-- Use smart lane/approach/area placement for pavement markings.
-- Do not implement freehand CAD drawing in the MVP.
-- Do not claim Thai-standard compliance unless the source status is verified.
-- Mark assumptions as `PROJECT_ASSUMPTION` or `TODO_VERIFY`.
+- Default jurisdiction context: Thailand.
+- Default traffic side: left-hand traffic.
+- Keep architecture capable of LHT/RHT rather than encoding compass-specific eastbound/westbound rules.
+- Domain dimensions use meters.
+- A road is semantic/reference-alignment based; do not make SVG/mesh the source of truth.
+- Longitudinal changes should use station-based component/lane behavior rather than arbitrary overlay polygons.
+- Junction geometry and topology are separate; a visual crossing is only a candidate connection.
+- 2D and 3D must derive from the same engineering model.
+- Common road graphics should be generated procedurally or through semantic assemblies where practical.
+- Do not require the user to manually draw SVG assets or model GLB assets.
+- Validation is advisory unless geometry is impossible or internally inconsistent.
 
-## Pavement Marking Rules
+## Standards/provenance
 
-When adding a marking:
+Never present an unverified value as an official Thai requirement.
 
-1. define category and subtype;
-2. define target type and target id;
-3. define position/offset behavior;
-4. use auto rotation where possible;
-5. include source status;
-6. add validation rules if the marking can be incomplete or inconsistent.
+Engineering-sensitive data should carry source/provenance information such as:
+- authority/agency;
+- document/manual;
+- edition/version/effective date where known;
+- section/table/figure reference where appropriate;
+- applicability notes;
+- confidence/status.
 
-## UX Rules
+Existing source-status concepts may be used during migration:
+- `THAI_AUTHORITY`
+- `AGENCY_MANUAL`
+- `INTERNATIONAL_BEST_PRACTICE`
+- `PROJECT_ASSUMPTION`
+- `CUSTOM_CONCEPT`
+- `TODO_VERIFY`
 
-The preferred user flow is:
+Prefer a structured versioned standards-reference model as the product evolves.
 
-```text
-Select lane/approach/area -> Add Marking -> auto-place -> adjust in inspector
-```
+## Marking rules
 
-Do not make users manually draw standard lane markings or symbols.
+Standard road markings should normally be procedural semantic objects, not raster artwork.
 
-## Over-Engineering Guardrails
+For a marking define, where applicable:
+1. semantic category/subtype;
+2. target/reference (road, lane, approach, junction, area, station);
+3. physical dimensions/pattern parameters;
+4. orientation behavior;
+5. source/profile provenance;
+6. 2D and 3D rendering behavior;
+7. validation/compatibility rules.
 
-Do not add these unless explicitly requested for a later phase:
+Manual world-x/y placement may exist as an override but should not be the only attachment model.
 
-- database;
-- backend;
-- login;
-- 3D;
-- simulation;
-- DXF/DWG;
-- full CAD layer management;
-- complete standards enforcement;
-- AI prompt-to-diagram.
+## Thailand asset direction
 
-## Done Criteria
+Core engineering assets should be generated or assembled from project-controlled definitions where feasible:
+- lines/markings;
+- arrows/stencils;
+- signs/sign faces;
+- signals;
+- delineators/bollards;
+- barriers/guardrails;
+- lighting.
 
-A road/marking change is done only when:
+Use third-party 3D/context assets only after license/provenance review.
 
-- the diagram still renders cleanly;
-- behavior matches the current phase;
-- validation is updated where needed;
-- tests are added for geometry or validation logic where practical;
-- docs are updated when product behavior changes.
+## UX rules
+
+Preferred design interactions:
+- trace/draw alignment on map/reference;
+- select/reuse a cross-section configuration;
+- modify semantic components;
+- add taper/turn pocket/median/access as generated engineering features;
+- confirm/refine candidate junctions;
+- inspect synchronized 2D/3D;
+- use exact dimensions in the inspector;
+- allow AI natural-language actions only through previewable typed semantic commands.
+
+## Done criteria
+
+A Thailand-oriented engineering change is not done until:
+- traffic-side behavior is correct and not accidentally compass-specific;
+- engineering semantics are preserved independently of rendering;
+- unverified standards claims are clearly tagged/avoided;
+- relevant geometry/validation tests exist;
+- 2D/3D implications are considered where applicable;
+- provenance/licensing is recorded for new external assets or standards material;
+- user-facing behavior is documented when it changes.
