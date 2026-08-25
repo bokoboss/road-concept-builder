@@ -1,73 +1,227 @@
 # Decisions Log
 
-## Decision 001 - Use SVG First
+This log records current authoritative product/architecture decisions. Legacy Phase 2E decisions are retained only where they still apply.
 
-Use SVG as the primary rendering and export format.
+Status values:
+- `ACTIVE` — current authoritative direction;
+- `SUPERSEDED` — historical decision, no longer authoritative;
+- `DEFERRED` — intentionally not frozen yet.
 
-Reason: SVG is crisp, inspectable, report-friendly, and suitable for parametric diagrams.
+## D001 — Concept design, not construction design
 
-## Decision 002 - Concept Diagram, Not Construction Drawing
+**Status:** ACTIVE
 
-The product creates engineering-informed schematic diagrams, not construction drawings.
+Road Concept Builder is an engineering-aware concept design and communication environment, not a construction drawing package or a Civil 3D/OpenRoads replacement.
 
-Reason: This keeps the product lightweight and avoids false precision.
+Detailed grading, drainage, earthworks, BIM, full swept path, traffic simulation, and signal optimization are separate/deferred domains.
 
-## Decision 003 - Thailand / Left-Hand Traffic Default
+## D002 — Thailand/LHT default, not compass-specific logic
 
-Default traffic side is left-hand traffic and default context is Thailand.
+**Status:** ACTIVE
 
-Reason: Primary use case is Thai traffic engineering reports and presentations.
+Default jurisdiction/context is Thailand and left-hand traffic.
 
-## Decision 004 - Template-First Workflow
+The canonical model must support LHT/RHT without encoding permanent eastbound/westbound special cases.
 
-Users start from templates/presets, not a blank CAD canvas.
+## D003 — Map-first project workflow
 
-Reason: Faster workflow and better control over traffic logic.
+**Status:** ACTIVE
 
-## Decision 005 - Three-Panel UI
+A project should be able to start from a real map/satellite/reference plan, imported image, or blank/local canvas.
 
-Use left palette, center SVG canvas, right inspector/validation panel.
+Map/reference state is first-class but not canonical road geometry.
 
-Reason: This supports template selection, live preview, and parameter editing without clutter.
+## D004 — 2D plan authoring is primary
 
-## Decision 006 - Pavement Marking Is Core
+**Status:** ACTIVE
 
-Pavement marking is a core system and should be designed early.
+2D plan is the primary engineering authoring environment.
 
-Reason: The value of the product depends heavily on lane arrows, stop lines, crosswalks, U-turn arrows, warning bars, and other markings.
+Cross section is contextual, and 3D is synchronized from the same model for inspection/presentation and limited editing.
 
-## Decision 007 - Smart Placement Before Freehand Editing
+## D005 — One semantic source of truth for 2D and 3D
 
-Markings should be placed by lane/approach/area targeting before freehand drawing.
+**Status:** ACTIVE
 
-Reason: This keeps the product simple, fast, and traffic-aware.
+SVG, Canvas/WebGL objects, and 3D meshes are derived representations.
 
-## Decision 008 - Advisory Validation
+Canonical road/lane/junction/asset engineering semantics live in renderer-independent project data.
 
-Validation warnings are advisory and non-blocking unless geometry is impossible.
+## D006 — Reference alignment + stationing
 
-Reason: Concept drawings need flexibility while still guiding the user.
+**Status:** ACTIVE
 
-## Decision 009 - JSON-Serializable Project State
+Generalized roads use reference alignment and stationing.
 
-Project data should be JSON-serializable from the beginning.
+Longitudinal changes such as taper, widening, lane add/drop, turn pocket, and median transition should use station-based component/lane profiles rather than detached special-case polygons.
 
-Reason: Future save/load and project sharing should be possible without rewriting the architecture.
+## D007 — Cross section is component based
 
-## Decision 010 - Phase 0 Before Geometry
+**Status:** ACTIVE
 
-Start with a static UI shell and static SVG preview before implementing the geometry engine.
+Road configurations/presets instantiate ordered editable semantic components.
 
-Reason: UX is critical for this product, and a visually wrong app will be hard to recover later.
+A preset is a generator, not an opaque graphic object.
 
-## Decision 011 - No Backend in MVP
+## D008 — Geometry and topology are separate
 
-No login, database, cloud sync, or backend in MVP.
+**Status:** ACTIVE
 
-Reason: These features do not help validate the core product.
+Roads that visually/geometrically cross create a candidate junction only.
 
-## Decision 012 - No CAD Export in MVP
+Network connection requires explicit connected-junction/topology state. Grade-separated or ignored candidates remain disconnected.
 
-No DXF/DWG export in MVP.
+## D009 — Junctions and lane connections are first-class semantic objects
 
-Reason: CAD export would drive over-engineering before the core UI and geometry are proven.
+**Status:** ACTIVE
+
+Junctions model approaches, per-corner geometry, and explicit lane connectivity/movements.
+
+Do not infer all network behavior from final pavement polygons.
+
+## D010 — Direct manipulation + exact numeric input
+
+**Status:** ACTIVE
+
+The editor should support fast grips/drag interaction and precise property entry against the same semantic parameters.
+
+## D011 — Automation first, manual override second
+
+**Status:** ACTIVE
+
+Common road geometry, markings, signs/assemblies, and repeated assets should be generated from semantic parameters where possible.
+
+The engineer may override generated results when project context requires it.
+
+The normal workflow must not require the user to manually draw SVG assets, model GLB assets, or use Illustrator/Blender.
+
+## D012 — Advisory validation
+
+**Status:** ACTIVE
+
+Engineering/standards validation guides rather than interrupts unless geometry is impossible or internally inconsistent.
+
+Unverified values must not be presented as official standards.
+
+## D013 — Standards require provenance/versioning
+
+**Status:** ACTIVE
+
+Standard-sensitive rules/assets should identify authority, document/manual, version/edition/effective date where available, and applicability.
+
+Projects should eventually pin an explicit standards-profile version rather than silently adopting new values.
+
+## D014 — Markings are semantic/procedural where practical
+
+**Status:** ACTIVE
+
+Lane/edge lines, crosswalks, arrows, hatching, stop/yield lines, and similar engineering markings should normally be procedural or semantic objects rather than raster artwork.
+
+## D015 — Asset system uses typed families
+
+**Status:** ACTIVE
+
+Asset families:
+- procedural road components;
+- procedural markings;
+- semantic assemblies;
+- props;
+- distributions.
+
+A semantic asset may expose both 2D and 3D representations.
+
+## D016 — Third-party assets require license provenance
+
+**Status:** ACTIVE
+
+Prefer generated/project-controlled assets for core engineering content and permissive/CC0-style sources for generic context assets when appropriate.
+
+Do not copy competitor assets/code without explicit license confirmation.
+
+## D017 — Scenarios/alternatives are core state
+
+**Status:** ACTIVE
+
+Existing and proposed alternatives are visible first-class project concepts rather than separate unrelated project files.
+
+Comparison behavior must not mutate compared scenarios.
+
+## D018 — Command architecture is the editing boundary
+
+**Status:** ACTIVE
+
+Committed engineering edits should use typed semantic commands/transactions that support validation and undo/redo.
+
+This is also the future AI integration boundary.
+
+## D019 — AI proposes semantic commands, not raw scene mutations
+
+**Status:** ACTIVE
+
+Natural-language AI actions may propose/edit through typed commands with preview, validation, Apply/Cancel, and undo.
+
+AI must not directly edit meshes, SVG nodes, renderer objects, or raw project JSON as an implementation shortcut.
+
+## D020 — Prototype backward compatibility is not a hard requirement
+
+**Status:** ACTIVE
+
+The existing Phase 2E prototype may be reused, partially salvaged, or replaced.
+
+Preserve Git history/recoverability. Do not build significant compatibility debt around prototype-only abstractions unless real project data creates a demonstrated migration need.
+
+## D021 — Geometry changes require machine-verifiable evidence
+
+**Status:** ACTIVE
+
+Screenshots alone cannot qualify geometry.
+
+Use canonical fixtures, invariants, deterministic tests, property/fuzz testing where applicable, and performance evidence.
+
+## D022 — Kernel language is not frozen until R1 evidence
+
+**Status:** DEFERRED
+
+TypeScript and Rust/WASM are credible candidates.
+
+Stage R1 must recommend the kernel approach based on robustness, dependency quality, testing, performance, WASM/native integration, and maintenance complexity.
+
+## D023 — Interactive 2D renderer is not frozen until R1/R2
+
+**Status:** DEFERRED
+
+SVG remains a useful export/diagnostic representation, but is no longer assumed to be the production editing renderer.
+
+Potential approaches include SVG/hybrid and GPU/vector renderers.
+
+## D024 — Standalone desktop is the target product form
+
+**Status:** ACTIVE
+
+The intended product is a standalone desktop application, with Windows as the first practical target unless later evidence changes this decision.
+
+Core design should work offline; online map/satellite providers may require connectivity.
+
+## D025 — Legacy SVG-first decision
+
+**Status:** SUPERSEDED
+
+Legacy decision: use SVG as primary rendering and export architecture.
+
+Current direction: retain SVG as a useful output/diagnostic path but do not make it the canonical editor architecture.
+
+## D026 — Legacy template-first workflow
+
+**Status:** SUPERSEDED
+
+Legacy decision: choose a fixed situation/template then configure parameters.
+
+Current direction: map/reference + alignment authoring is primary, with presets used as generators for editable road configurations.
+
+## D027 — Legacy static three-panel shell before geometry
+
+**Status:** SUPERSEDED
+
+The Phase 0 UI-first prototype served its purpose.
+
+Current risk priority is generalized semantic/geometry proof before rebuilding the production editor shell.
