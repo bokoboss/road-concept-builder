@@ -1,86 +1,163 @@
-# Product Boundary and Scope
+# Product Boundary and Scope — Rebaseline
 
-## One-Sentence Definition
+## One-sentence definition
 
-Road Concept Builder is a lightweight 2D plan-view road concept diagram builder for traffic engineering reports and presentations.
+Road Concept Builder is a standalone, map-first, engineering-aware street and intersection concept design environment that turns semantic roadway models into synchronized 2D and 3D communication outputs.
 
-## Primary Use Cases
+## Primary use cases
 
-The app should help traffic engineers quickly create clean concept diagrams for:
+The product should help traffic engineers quickly create and compare concepts for:
+- existing-road tracing/reference;
+- project access layouts;
+- lane additions and drops;
+- right/left-turn pockets;
+- median openings and U-turn treatments;
+- T and four-leg intersections;
+- skewed intersection improvements;
+- road widening;
+- channelizing islands/slip lanes later;
+- bus bays;
+- parking/bike/sidewalk/verge streetscape components;
+- pavement markings and traffic-control devices;
+- Existing / Alternative comparisons;
+- report/presentation graphics and live 3D views.
 
-- straight road sections;
-- lane additions and lane drops;
-- median openings and U-turn pockets;
-- T-intersections and four-leg intersections;
-- left-turn and right-turn pocket lanes;
-- free-left slip lanes and channelizing islands;
-- roundabouts;
-- project access layouts such as full access and left-in/left-out;
-- pavement markings and symbols used in concept drawings;
-- before/after road improvement presentation graphics.
+## Intended output quality
 
-## Intended Output Quality
-
-The output should be suitable for:
-
+Outputs should be suitable for:
 - traffic impact assessment reports;
-- public agency presentations;
-- internal engineering discussion;
-- early-stage concept alternatives;
-- PowerPoint slides;
-- Word/PDF report graphics.
+- engineering concept studies;
+- public-agency/developer presentations;
+- internal design discussions;
+- alternative comparison workshops;
+- PowerPoint/Word/PDF graphics;
+- interactive 3D concept review.
 
-The output should not be represented as a construction drawing or detailed design drawing.
+Outputs are not automatically construction drawings or certification of detailed-design compliance.
 
-## What This Product Is Not
+## Product boundary
 
-The product is not:
+The product should be **more technically structured than a generic drawing/3D visualization app** and **substantially lighter than detailed civil-design software**.
 
-- AutoCAD;
-- Civil 3D;
-- VISSIM;
-- a road design package;
-- a construction drawing tool;
-- a traffic simulation model;
-- a swept-path design tool;
-- a signal timing package;
-- a standards compliance certification tool;
-- an AI-generated image tool.
+### Core product capabilities
 
-## Accuracy Policy
+- real map/reference context;
+- engineering-semantic roads/lanes/junctions;
+- reference alignment and stationing;
+- component cross sections;
+- longitudinal transitions;
+- first-class intersection topology;
+- procedural/semantic road markings;
+- semantic traffic-control assets;
+- synchronized 2D/3D;
+- alternatives/scenarios;
+- advisory standards validation;
+- presentation export;
+- future natural-language semantic commands.
 
-The app uses **engineering-informed schematic geometry**.
+### Not the initial product
 
-It may support approximate engineering scale using lane width, shoulder width, median width, storage length, and taper length as inputs.
+Do not turn the core product into:
+- Civil 3D/OpenRoads-style detailed corridor design;
+- construction documentation;
+- terrain/grading/cut-fill package;
+- drainage design software;
+- BIM authoring environment;
+- traffic microsimulation platform;
+- signal timing optimization software;
+- full vehicle swept-path replacement;
+- multi-user cloud collaboration platform;
+- general-purpose 2D/3D modelling software.
 
-However:
+These domains may integrate later only when they support the core concept workflow without redefining the product.
 
-- it does not replace detailed design checking;
-- it does not guarantee every dimension complies with Thai standards;
-- it should clearly mark unverified defaults as assumptions;
-- validation warnings are advisory unless the geometry is internally impossible.
+## Accuracy policy
 
-## Negative Scope for MVP
+Use real engineering dimensions and deterministic semantic geometry, but distinguish **concept design accuracy** from detailed final design/compliance certification.
 
-Do not include in MVP:
+Requirements:
+- meters are canonical domain units;
+- dimensions remain inspectable/editable;
+- geometry invariants are machine-tested;
+- standards-sensitive defaults carry provenance/status;
+- unverified assumptions are never presented as official requirements;
+- validation is advisory unless geometry is impossible/internal state is invalid;
+- user overrides remain possible where project context justifies them.
 
-- login/authentication;
-- database;
-- cloud sync;
-- multi-user collaboration;
-- AI prompt-to-diagram;
-- 3D visualization;
-- simulation;
-- traffic volume or LOS calculation;
-- signal optimization;
-- swept-path analysis;
-- DXF/DWG export;
-- mobile-first UX;
-- complete sign library;
-- complete pavement marking standard library;
-- full freehand drawing;
-- CAD-level snapping and layers.
+## 3D boundary
 
-## Product Success Criteria
+3D is a first-class synchronized view, not a separate modelling product.
 
-The first meaningful version succeeds if a user can create a clean 4-lane divided road concept diagram with lane arrows, median, shoulders, and basic pavement markings in under 60 seconds, then export it to SVG/PNG.
+Initial 3D responsibility:
+- road/median/curb/sidewalk surfaces;
+- markings;
+- junction pavement;
+- basic traffic-control/context assets;
+- Engineering and Presentation views;
+- saved/presentation camera views later.
+
+Do not require Blender-like mesh editing from the normal user.
+
+## AI boundary
+
+AI may:
+- translate natural-language intent into typed semantic commands;
+- explain selected engineering objects;
+- identify missing/inconsistent concept elements;
+- propose an alternative scenario.
+
+AI may not bypass:
+- semantic project state;
+- validation;
+- preview/apply/cancel;
+- undo/redo;
+- topology rules;
+- standards provenance.
+
+AI must not directly mutate renderer meshes/SVG/project JSON as the product editing mechanism.
+
+## Asset boundary
+
+The user should not need to manually create production assets.
+
+Prefer:
+1. procedural engineering generation;
+2. semantic assemblies;
+3. project-generated vector/simple 3D assets;
+4. licensed third-party context assets with provenance.
+
+Asset realism should not block geometry/engineering usefulness.
+
+## Deferred capabilities
+
+Explicitly defer until core golden workflows are strong:
+- detailed vertical alignment;
+- terrain/cut-fill;
+- drainage;
+- roundabout production module until ordinary junction kernel is robust;
+- full swept path;
+- traffic simulation;
+- traffic-volume/LOS analytics inside this product;
+- signal timing;
+- cloud collaboration;
+- full BIM/CAD interchange;
+- plugin marketplace;
+- large photorealistic asset catalog.
+
+## Product success criteria
+
+The first meaningful production milestone succeeds when a traffic engineer can complete the Project Access Improvement golden workflow:
+
+```text
+map/reference
+ -> road alignment/cross section
+ -> access
+ -> turn pocket
+ -> median opening
+ -> markings
+ -> synchronized 3D
+ -> alternative
+ -> compare/export
+```
+
+faster and with less manual drafting than their prior workflow, while preserving engineering semantics, dimensions, editability, and provenance.
