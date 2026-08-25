@@ -1,3 +1,13 @@
+# LEGACY PROTOTYPE — DO NOT USE AS THE SUCCESSOR BASE
+
+This repository is retained only as a historical prototype and research reference.
+
+The intended product has changed materially. The successor will be created in a new clean-slate repository with **no source-code, schema, test, or architecture compatibility requirement** with this project. Do not continue product development here unless the goal is specifically to inspect or preserve the Phase 0–2E prototype.
+
+Lessons and research may be reused conceptually, but implementation artifacts from this repository must be independently re-evaluated before any reuse.
+
+---
+
 # Road Concept Builder
 
 Road Concept Builder is a lightweight 2D plan-view road layout diagram builder for traffic engineering reports, concept presentations, and early-stage road improvement communication.
