@@ -1,199 +1,202 @@
-# UI/UX Guidelines
+# UI/UX Guidelines — Rebaseline
 
-## Product UX Direction
+## Authoritative detail
 
-Road Concept Builder is a visual authoring tool, not a calculation form.
+Use these documents together:
+- `docs/UX_ARCHITECTURE_V0_1.md` — workspace and interaction architecture;
+- `docs/VISUAL_DESIGN_SYSTEM_V0_1.md` — visual language;
+- `docs/TOOL_TAXONOMY_V0_1.md` — tool families/contextual actions.
 
-The user should feel that the app helps them create a clean engineering concept diagram quickly.
+This file provides the short set of mandatory UX rules.
 
-The product should feel like:
+## Product UX objective
 
-- Streetmix in terms of quick template-based road thinking;
-- Canva in terms of clean composition and export readiness;
-- VISSIM pavement marking placement in terms of selecting road objects and placing markings easily;
-- a traffic engineering tool in terms of terminology and logic.
+The application is a professional engineering concept editor, not a calculation form, generic illustration app, or CAD clone.
 
-The product should not feel like:
+The user should be able to move from map/reference context to a precise road/intersection concept quickly while seeing the same semantic model in 2D and 3D.
 
-- AutoCAD;
-- a long Excel-like input form;
-- a generic drawing app;
-- a complex road design platform.
+## Mandatory UX rules
 
-## Core Interaction Model
+### 1. Plan view is the primary authoring surface
 
-Use this interaction model:
+Use 2D plan for most engineering edits.
 
-```text
-Choose template -> configure parameters -> add components/markings -> validate -> export
-```
+3D is synchronized for inspection/presentation and limited editing, not a separate modelling workflow.
 
-Avoid this model:
+### 2. Viewport first
 
-```text
-Blank canvas -> draw every line manually -> manually align every symbol
-```
+Keep the design/map viewport dominant.
 
-## Layout
+Persistent information hierarchy:
+- left: Layers / Map / Library;
+- center: main viewport;
+- right: contextual Properties / Validation / AI;
+- compact contextual tools;
+- visible scenarios.
 
-Use a clean 3-panel desktop layout:
+Do not build a dashboard-card layout.
 
-```text
-+--------------------------------------------------------------+
-| Top Bar: Project / Undo / Redo / Validate / Export           |
-+---------------+-------------------------------+--------------+
-| Left Panel    | Center SVG Canvas             | Right Panel  |
-| Templates     | Live Preview                  | Inspector    |
-| Components    | Pan / Zoom / Fit              | Validation   |
-| Markings      |                               | Properties   |
-+---------------+-------------------------------+--------------+
-```
+### 3. Direct manipulation + exact values
 
-### Top Bar
+Road, lane/component, corner and other geometric operations should support:
+- drag/grip editing for speed;
+- numeric property input for precision.
 
-Keep it minimal:
+Both paths edit the same semantic parameter.
 
-- New;
-- Undo / Redo;
-- Validate;
-- Export;
-- View mode;
-- app title / project title.
+### 4. Separate navigation and editing
 
-Do not add many menus in MVP.
+At minimum:
+- Select;
+- Hand/Pan;
+- distinct 3D Orbit/Pan/Select behavior.
 
-### Left Panel
+The active mode must always be visible.
 
-The left panel should contain:
+Navigation must not accidentally move design objects.
 
-- Templates;
-- Road Components;
-- Pavement Markings;
-- Presets.
+### 5. Progressive disclosure
 
-Use cards or compact list items with icons, not long dropdowns.
+Common properties first; advanced station/topology details on demand.
 
-### Center Canvas
+Never hide critical validation/status inside an Advanced section.
 
-The canvas is the main work area.
+### 6. Contextual actions over toolbar sprawl
 
-It should support:
+When a Road is selected, show road actions.
+When a Junction is selected, show junction actions.
+When a Marking is selected, show marking actions.
 
-- SVG preview;
-- fit-to-screen;
-- zoom in/out;
-- pan later;
-- selected object highlight;
-- simple grid optional;
-- validation marker later.
+Do not create a permanent icon for every feature/subtype.
 
-Do not implement CAD-level snapping in MVP.
+### 7. Automation first, override second
 
-### Right Inspector
+Do not require the user to manually draw normal lanes, tapers, crosswalk stripes, arrows, signs or 3D assets.
 
-The right panel shows properties for the selected object.
+Generate from semantic parameters and let the user refine/override.
 
-Examples:
+### 8. Candidate junction confirmation
 
-- Road Segment Inspector;
-- Lane Inspector;
-- Approach Inspector;
-- Marking Inspector;
-- Validation Panel.
+If roads cross/touch, show a candidate and require explicit connection/ignore/grade-separated decision.
 
-Keep inputs grouped and progressive. Avoid exposing every property at once.
+Do not silently create network topology.
 
-## Visual Style
+### 9. Synchronized selection
 
-Use a clean technical visual style:
+Selecting a semantic object in plan should identify/highlight the same object in 3D/cross-section and update the contextual inspector.
 
-- neutral UI background;
-- white/very light panels;
-- subtle borders;
-- limited accent color;
-- high-contrast road diagram;
-- road surface in neutral grey;
-- white/yellow lane markings;
-- warning amber;
-- error red used sparingly;
-- selected element outline in accent color.
+### 10. Scenarios are visible
 
-Avoid colorful dashboard styling.
-The road diagram is the visual focus.
+Existing/Alternative state should remain obvious during editing.
 
-## First-Time User Target
+Comparisons must not mutate the compared scenario.
 
-A first-time user should be able to create a basic 4-lane divided road diagram within 60 seconds.
+### 11. Non-modal validation
 
-A user should not need to manually draw individual lane lines for standard road layouts.
+Use an Issues panel and on-canvas markers.
 
-## Pavement Marking UX
+Issue actions should select/focus the affected object and explain source/rule where applicable.
 
-Pavement marking must be a first-class UX area.
+Only impossible/internal-invalid geometry should block operations by default.
 
-Preferred workflow:
+### 12. Reliable undo/redo
+
+One conceptual edit should normally be one transaction.
+
+AI-generated changes use the same undo path.
+
+`Esc` must cancel transient operations safely.
+
+### 13. Map/reference readability
+
+Provide:
+- opacity;
+- dim/desaturate;
+- label visibility where available;
+- reference lock;
+- scale/georeference status.
+
+Proposed engineering geometry must remain legible over satellite imagery.
+
+### 14. AI is an alternate command interface
+
+Natural-language intent must produce a visible semantic command proposal, preview and Apply/Cancel path.
+
+Do not let AI write raw scene/project state directly.
+
+## New project flow
+
+Recommended:
 
 ```text
-Select lane/approach/area -> Add Marking -> system places it automatically -> adjust offset/repeat/scale if needed
+New Project
+  Map / Satellite
+  Import Image / Site Plan
+  Blank Canvas
 ```
 
-The marking palette should be in the left panel.
-The selected marking should be edited in the right inspector.
+Defaults:
+- metric;
+- Thailand;
+- left-hand traffic.
 
-Phase 2C keeps marking adjustment deliberately simple: generated arrow markings can be selected in the inspector, hidden, nudged in X/Y meters, and scaled. This supports report cleanup without introducing drag-and-drop CAD editing or a full marking library.
+Advanced CRS/georeference settings remain collapsed until needed.
 
-Phase 2D adds object-based editing for pavement markings only: generated and manual marking objects can be selected on the SVG canvas, dragged when unlocked, hidden, locked, and edited in the inspector. Lanes, medians, U-turn openings, and pockets remain parameter-driven and are not draggable canvas objects.
+## Core road flow
 
-Phase 2E makes that object workflow practical for report cleanup: the inspector provides selected-object actions for delete, duplicate manual object, lock/unlock, show/hide, and one-step z-order changes, plus a compact object list. Save/load stays local JSON only. SVG export is available from the top bar; PNG remains a later export step.
+```text
+Draw/trace alignment
+ -> choose/apply road configuration
+ -> edit cross-section components
+ -> add longitudinal features
+ -> confirm/refine junction/access
+ -> markings/assets
+ -> validate
+ -> compare alternative
+ -> export/present
+```
 
-## Validation UX
+## Cross-section UX
 
-Validation must guide rather than interrupt.
+Component blocks should be compact and reorderable.
 
-Use a non-blocking validation panel, not modal popups.
+The cross-section editor is contextual to the selected road/station and does not replace plan-view longitudinal geometry.
 
-Severity levels:
+## 3D UX
 
-- Info: concept assumption or note;
-- Warning: likely issue or incomplete marking;
-- Error: impossible or internally contradictory geometry.
+Initial modes:
+- Engineering;
+- Presentation.
 
-Only impossible geometry should block critical operations.
+Initial controls:
+- Orbit;
+- Pan;
+- Zoom;
+- Fit Selection;
+- Top/Perspective.
 
-## View Modes
+No Blender-style modelling requirement.
 
-Long-term view modes:
+## Visual character
 
-1. Edit Mode;
-2. Presentation Mode;
-3. Standard Check Mode.
-
-MVP can implement only Edit Mode and Export Preview.
-
-Phase 2C adds drawing-level display toggles for clean screenshots. These toggles hide SVG drawing labels and/or pavement markings only; validation panel text and app diagnostics remain visible.
-
-## Phase 0 UI Shell Requirement
-
-Before geometry implementation, create a static app shell with:
-
-- top bar;
-- left templates/components/markings panel;
-- center static SVG road preview;
-- right inspector panel;
-- sample static validation messages;
-- clean spacing and typography.
-
-This is required to validate the UX direction before deep logic work.
-
-## UX Anti-Patterns
+Target:
+- modern;
+- calm;
+- premium;
+- professional;
+- compact;
+- engineering-oriented.
 
 Avoid:
+- CAD-ribbon overload;
+- consumer dashboard styling;
+- game-like neon UI;
+- giant forms;
+- excessive dialogs;
+- icon-only mystery tools.
 
-- a giant single-page form;
-- CAD-like toolbar overload;
-- blank canvas first workflow;
-- requiring manual line drawing for standard layouts;
-- over-detailed standard controls in MVP;
-- modal warnings for every issue;
-- hiding export behind complex settings;
-- mobile-first layout before desktop workflow works.
+## UX qualification
+
+Use `.agents/skills/ux-gate/SKILL.md`.
+
+Major product UX stages require real golden-workflow UAT in addition to screenshots/component tests.
