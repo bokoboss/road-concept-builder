@@ -1,150 +1,206 @@
-# Geometry, Scale, and Unit Policy
+# Geometry, Coordinate, and Scale Policy — Rebaseline
 
 ## Purpose
 
-This document defines how geometric accuracy should be treated in the app.
+Define how engineering dimensions, project coordinates, screen/view transforms, map/georeference context, and rendering precision are separated.
 
-The goal is to avoid two failure modes:
+## Accuracy level
 
-1. visual-only drawings that look arbitrary;
-2. over-engineered CAD-like geometry that prevents fast MVP delivery.
+Road Concept Builder is a concept-design tool, but its semantic engineering dimensions are real values rather than arbitrary drawing scale.
 
-## Accuracy Level
+Concept-level precision does **not** mean visual-only geometry.
 
-Use **approximate engineering scale** as the default.
-
-The app should support real engineering parameters such as:
-
-- lane width;
-- shoulder width;
-- median width;
-- pocket lane storage length;
+The product should preserve inspectable dimensions such as:
+- lane/component width;
+- median/shoulder/sidewalk width;
+- station;
 - taper length;
-- road segment length;
-- crosswalk width;
-- stop line offset;
-- marking spacing.
+- storage length;
+- opening dimensions;
+- corner radius/geometry;
+- marking dimensions/spacing;
+- asset physical dimensions/offsets.
 
-However, these are used for concept diagrams and should not be treated as construction drawing output.
+Detailed construction-design checks remain outside the initial product boundary.
 
-## Units
+## Canonical units
 
-Use meters for all domain-level geometry.
+Use **meters** for domain-level geometry.
 
-Convert meters to SVG pixels using a single drawing scale setting:
+Do not store canonical engineering dimensions in pixels.
 
-```ts
-pixels = meters * pxPerMeter
+Legacy Phase 2E `pxPerMeter` is a renderer/view concern and must not become project truth.
+
+## Coordinate spaces
+
+Distinguish these spaces explicitly.
+
+### 1. Source/geographic coordinates
+
+Optional real-world source coordinates such as projected CRS/geographic/map data.
+
+These may have large numeric magnitudes.
+
+### 2. Project engineering coordinates
+
+Canonical local/project coordinates in meters.
+
+A project may retain the transform/reference needed to relate these coordinates to the real-world source CRS.
+
+### 3. Renderer-local coordinates
+
+Coordinates translated near a local origin for stable GPU/visual rendering.
+
+This transform must be reversible/traceable and must not alter engineering dimensions.
+
+### 4. Screen/view coordinates
+
+Pixels/viewport positions produced by pan/zoom/camera projection.
+
+These are ephemeral editor/view state only.
+
+## Required transform principle
+
+```text
+Source / CRS
+    -> Project engineering meters
+    -> Renderer-local meters
+    -> Screen/view coordinates
 ```
 
-Current Phase 1 default:
+The inverse path must be available where editing needs screen-to-world/project conversion.
 
-```ts
-pxPerMeter = 18
+## Imported image/reference plans
+
+Un-georeferenced JPG/PNG/site-plan references should support scale calibration.
+
+Minimum calibration concept:
+- select reference point A;
+- select reference point B;
+- enter known distance in meters;
+- calculate image-to-project transform.
+
+Later support may include multiple control points/affine/georeference workflows when justified.
+
+The imported image is reference context, not engineering geometry.
+
+## Traffic-side semantics
+
+Default:
+
+```text
+trafficSide = left
+jurisdiction = Thailand
 ```
 
-Phase 1 owns this value in a minimal drawing-settings object. The renderer may reduce the effective display scale to fit a wide road safely inside the SVG preview.
-Invalid drawing settings use safe Phase 1 defaults. Lane-generation loops also apply an internal absolute cap of 16 lanes per direction, independent of caller-supplied drawing settings.
+Do not infer travel direction from fixed screen orientation or east/west/north/south assumptions.
 
-The Phase 1 straight-road SVG preview clamps its segment extent to 500 m and bounds preview scale so meter-to-pixel conversion remains finite. This is a module-specific preview/rendering safeguard only. It is not a Thai standard, a road-design limit, or a future intersection limit. Future intersection modules should use their own preview extent settings, such as `approachLengthMeters`.
+Traffic-side logic should operate relative to:
+- reference alignment direction;
+- carriageway/component side;
+- lane travel direction;
+- junction approach orientation.
 
-## Coordinate System
+## Alignment/stationing
 
-Use a predictable internal coordinate system.
+Generalized roads use a reference alignment with station measured monotonically from alignment start.
 
-Recommended convention:
+Required conceptual functions:
 
-- X axis: road length or east-west direction;
-- Y axis: road cross-section width or north-south direction;
-- origin: local drawing origin, not geographic coordinate;
-- no GIS coordinates in MVP.
-
-## Traffic Side
-
-Default traffic context is Thailand:
-
-```ts
-trafficSide = 'left'
+```text
+length()
+pointAt(s)
+tangentAt(s)
+normalAt(s)
+curvatureAt(s)
+projectPoint(x,y) -> { station, lateralOffset }
 ```
 
-Implications:
+Station remains an engineering-domain value in meters regardless of screen zoom or renderer resolution.
 
-- vehicles travel on the left side of the carriageway;
-- right-turn pockets are typically median-side pockets;
-- U-turn pockets are typically median-side facilities;
-- lane movement arrows must rotate according to lane direction;
-- inbound and outbound lanes must be modeled explicitly at intersections.
+## Cross-section/lateral coordinate convention
 
-## Geometry Scope by Phase
+Define lateral offset relative to the reference alignment tangent/normal and document sign convention in the kernel implementation.
 
-### Phase 0
+Do not encode physical left/right solely through canvas Y direction; renderer orientation may differ.
 
-Static SVG preview only. No real geometry engine required.
+The chosen sign convention must be deterministic and covered by LHT/RHT regression tests.
 
-### Phase 1
+## View scale
 
-Straight road segment geometry:
+Interactive 2D zoom is a view transform.
 
-- lanes by direction;
-- shoulders;
-- median;
-- lane lines;
-- arrows;
-- generated through-arrow placement.
+Export scale may use an explicit drawing/layout/export setting, but that setting must not change canonical geometry.
 
-### Phase 2
+Example concept:
 
-Median-opening-only U-turn geometry:
+```text
+project coordinates (m)
+  -> viewport transform
+  -> pixels
+```
 
-- median opening;
-- opening center position measured from the segment's left/west edge;
-- opening width in meters;
-- full opening constrained to the straight-road preview segment;
-- optional generated U-turn arrow from the correct median-side source lane.
+not:
 
-Phase 2 invalid U-turn configurations render the base Phase 1 road without partial U-turn geometry. U-turn pockets, tapers, storage lanes, and warning bars are deferred to Phase 2B.
+```text
+project truth = pixels / pxPerMeter
+```
 
-### Phase 2B
+## 3D scale
 
-U-turn-specific pocket geometry:
+3D geometry uses meter-consistent local coordinates.
 
-- one optional pocket lane tied to the Phase 2 median opening;
-- storage length and taper length in meters;
-- pocket width uses the main road lane width as a Phase 2B simplification;
-- eastbound-to-westbound pockets extend upstream to the left of the opening;
-- westbound-to-eastbound pockets extend upstream to the right of the opening;
-- the full storage+taper length must fit upstream of the opening inside the straight-road preview segment;
-- invalid pocket configurations render the Phase 2A base road/opening without pocket geometry.
+A 12 m bus, 3.25 m lane, 0.15 m curb, and 25 m light spacing should remain physically coherent regardless of camera zoom.
 
-The Phase 2B pocket length ranges and fit behavior are preview safeguards and project assumptions, not Thai-standard design checks. Warning bars are deferred to a later marking or polish phase.
+## Precision strategy
 
-### Phase 3
+Requirements:
+- reject/handle NaN and Infinity;
+- use adequate floating-point precision for engineering coordinates;
+- use a renderer-local origin when source coordinates are large;
+- avoid geometry logic dependent on arbitrary SVG/canvas pixel tolerances;
+- define geometric tolerances in engineering units or derived numeric tolerances;
+- document tolerances used for intersection/cleanup/triangulation operations.
 
-Intersection geometry:
+## Geometry feasibility vs standards
 
-- approach-based layout;
-- inbound/outbound lanes;
-- stop line;
-- crosswalk;
-- pocket lane;
-- slip lane placeholder.
+Separate:
 
-## Do Not Do in MVP
+### Geometry/implementation safeguards
+Examples:
+- finite coordinate checks;
+- non-negative widths;
+- valid station intervals;
+- max safe loop/object count;
+- polygon validity;
+- renderer bounds.
 
-Do not implement:
+### Engineering standards/profile rules
+Examples may include recommended/minimum widths or marking dimensions from an authoritative source.
 
-- geographic coordinates;
-- alignment design;
-- vertical profile;
-- superelevation;
-- corridor modeling;
-- swept path;
-- lane-level simulation;
-- CAD-grade curve design;
-- standard-enforced taper formulas unless verified.
+A safeguard must never be presented as a Thai standard merely because it has a numeric limit.
 
-## Validation Principle
+Legacy Phase 2E numeric ranges are prototype safeguards/project assumptions unless independently verified through standards sources.
 
-When geometry is impossible, raise an error.
-When geometry is merely questionable, raise a warning.
-When geometry uses an assumption, show an info note.
+## Vertical/elevation policy
+
+Initial production scope is primarily horizontal/plan concept design.
+
+Architecture may reserve elevation/profile fields where harmless, but do not introduce a full vertical-alignment/corridor engine before a defined product use case.
+
+R1 may use flat/local elevation for 3D proof.
+
+## Geometry qualification
+
+Use `.agents/skills/geometry-gate/SKILL.md`.
+
+At minimum qualify:
+- station monotonicity;
+- finite transforms;
+- width/lifecycle validity;
+- large-coordinate local-origin behavior;
+- polygon/mesh validity;
+- deterministic output;
+- 2D/3D single-source derivation.
+
+A geometrically plausible screenshot is not sufficient evidence.
